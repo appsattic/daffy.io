@@ -1,0 +1,11 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/boltdb/bolt",
+			"repository": "https://github.com/boltdb/bolt",
+			"revision": "2e25e3bb4285d41d223bb80b12658a2c9b9bf3e3",
+			"branch": "master"
+		}
+	]
+}
