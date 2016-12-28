@@ -12,6 +12,61 @@
 			"repository": "https://github.com/chilts/rod",
 			"revision": "cf11ed0fa49ce5d137f09ec4f3794120c0abcd8c",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/context",
+			"repository": "https://github.com/gorilla/context",
+			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/mux",
+			"repository": "https://github.com/gorilla/mux",
+			"revision": "757bef944d0f21880861c2dd9c871ca543023cba",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/pat",
+			"repository": "https://github.com/gorilla/pat",
+			"revision": "cf955c3d1f2c27ee96f93e9738085c762ff5f49d",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/securecookie",
+			"repository": "https://github.com/gorilla/securecookie",
+			"revision": "fa5329f913702981df43dcb2a380bac429c810b5",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/gorilla/sessions",
+			"repository": "https://github.com/gorilla/sessions",
+			"revision": "83c8db3bdc9be789e57e3756ffbcffd2d7d40176",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/markbates/goth",
+			"repository": "https://github.com/markbates/goth",
+			"revision": "a185bfa1e93d394cdc958b8f34206dd70121c7a6",
+			"branch": "master"
+		},
+		{
+			"importpath": "github.com/mrjones/oauth",
+			"repository": "https://github.com/mrjones/oauth",
+			"revision": "f641ca13803b5c366bee1cdd836a0d5f165420e2",
+			"branch": "master"
+		},
+		{
+			"importpath": "golang.org/x/net/context",
+			"repository": "https://go.googlesource.com/net",
+			"revision": "45e771701b814666a7eb299e6c7a57d0b1799e91",
+			"branch": "master",
+			"path": "/context"
+		},
+		{
+			"importpath": "golang.org/x/oauth2",
+			"repository": "https://go.googlesource.com/oauth2",
+			"revision": "314dd2c0bf3ebd592ec0d20847d27e79d0dbe8dd",
+			"branch": "master"
 		}
 	]
 }
