@@ -6,6 +6,12 @@
 			"repository": "https://github.com/boltdb/bolt",
 			"revision": "2e25e3bb4285d41d223bb80b12658a2c9b9bf3e3",
 			"branch": "master"
+		},
+		{
+			"importpath": "github.com/chilts/rod",
+			"repository": "https://github.com/chilts/rod",
+			"revision": "cf11ed0fa49ce5d137f09ec4f3794120c0abcd8c",
+			"branch": "master"
 		}
 	]
 }
