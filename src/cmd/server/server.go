@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"encoding/gob"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -36,6 +38,17 @@ func check(err error) {
 	}
 }
 
+func render(w http.ResponseWriter, tmpl *template.Template, tmplName string, data interface{}) {
+	buf := &bytes.Buffer{}
+	err := tmpl.ExecuteTemplate(buf, tmplName, data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	buf.WriteTo(w)
+}
+
 func init() {
 	// tell gothic where our session store is
 	gothic.Store = sessionStore
@@ -48,6 +61,12 @@ func main() {
 	// setup
 	baseUrl := os.Getenv("DAFFY_BASE_URL")
 	port := os.Getenv("DAFFY_PORT")
+
+	// load up all templates
+	tmpl, err := template.New("").ParseGlob("./templates/*.html")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// create/open/connect to a store
 	boltStore := store.NewBoltStore("daffy.db")
@@ -131,13 +150,15 @@ func main() {
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
 
-		if user != nil {
-			// a session
-			fmt.Fprintf(w, "<p>You are logged in as %s. <a href='/logout'>Log Out.</a></p>", user.Name)
-		} else {
-			// no session
-			fmt.Fprintf(w, "<p>You are not logged in. <a href='/auth/twitter'>Log in with Twitter.</a></p>")
+		data := struct {
+			Title string
+			User  *types.User
+		}{
+			"Daffy",
+			user,
 		}
+
+		render(w, tmpl, "index.html", data)
 	})
 
 	// server

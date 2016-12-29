@@ -1,0 +1,14 @@
+{{ template "header.html" . }}
+
+{{ if .User }}
+  <h2>Your Articles/Posts/Pictures/Whatever</h2>
+  <p>This might a list of things owned by this user.</p>
+{{ else }}
+  <h2>Please Log In.</h2>
+  <ul>
+    <li><a href="/auth/twitter">Sign In with Twitter</a></li>
+  </ul>
+{{ end }}
+  <p>(Ends)</p>
+
+{{ template "footer.html" . }}
