@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gomiddleware/logger"
 	"github.com/gorilla/pat"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
@@ -161,7 +162,10 @@ func main() {
 		render(w, tmpl, "index.html", data)
 	})
 
+	// create the logger middleware
+	log := logger.New()
+
 	// server
-	errServer := http.ListenAndServe(":"+port, p)
+	errServer := http.ListenAndServe(":"+port, log(p))
 	check(errServer)
 }
