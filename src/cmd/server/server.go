@@ -108,13 +108,22 @@ func main() {
 
 		fmt.Printf("authUser=%#v\n", authUser)
 
-		// ToDo: check in the datastore for this Social ID - insert if it doesn't exist.
+		// check to see if this socialId already exists
+		// socialId := provider + "-" + authUser.UserID
+		user, err := boltStore.LogIn(provider, authUser.UserID, authUser.NickName, authUser.Name, authUser.Email)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-		// for now, just create a User that we can store in the session
-		user := types.User{
-			Name:  provider + "-" + authUser.UserID + "-" + authUser.NickName,
-			Title: authUser.Name,
-			Email: authUser.Email,
+		fmt.Printf("user=%#v\n", user)
+
+		// we always get a user back from LogIn()
+		if user == nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		// set this info in the session
