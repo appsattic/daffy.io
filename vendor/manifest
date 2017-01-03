@@ -56,6 +56,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/hashicorp/go-uuid",
+			"repository": "https://github.com/hashicorp/go-uuid",
+			"revision": "64130c7a86d732268a38cb04cfbaf0cc987fda98",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/markbates/goth",
 			"repository": "https://github.com/markbates/goth",
 			"revision": "a185bfa1e93d394cdc958b8f34206dd70121c7a6",
