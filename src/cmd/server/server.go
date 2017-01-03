@@ -175,10 +175,10 @@ func main() {
 	})
 
 	// create the logger middleware
-	log := logger.New()
+	lgr := logger.New()
 
 	// server
-	log.Info("Starting server, listening on port %s\n", port)
-	errServer := http.ListenAndServe(":"+port, log(p))
+	log.Printf("Starting server, listening on port %s\n", port)
+	errServer := http.ListenAndServe(":"+port, lgr(p))
 	check(errServer)
 }
