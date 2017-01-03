@@ -62,6 +62,9 @@ func main() {
 	// setup
 	baseUrl := os.Getenv("DAFFY_BASE_URL")
 	port := os.Getenv("DAFFY_PORT")
+	if port == "" {
+		log.Fatal("Specify a port to listen on in the environment variable 'DAFFY_PORT'")
+	}
 
 	// load up all templates
 	tmpl, err := template.New("").ParseGlob("./templates/*.html")
@@ -175,6 +178,7 @@ func main() {
 	log := logger.New()
 
 	// server
+	log.Info("Starting server, listening on port %s\n", port)
 	errServer := http.ListenAndServe(":"+port, log(p))
 	check(errServer)
 }
