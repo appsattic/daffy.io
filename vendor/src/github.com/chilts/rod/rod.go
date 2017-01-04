@@ -9,7 +9,6 @@ package rod
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/boltdb/bolt"
@@ -81,6 +80,11 @@ func Put(tx *bolt.Tx, location, key string, value []byte) error {
 	return b.Put([]byte(key), value)
 }
 
+// PutString() converts the string to []byte and calls Put(). Everything that applies there applies here too.
+func PutString(tx *bolt.Tx, location, key, value string) error {
+	return Put(tx, location, key, []byte(value))
+}
+
 // PutJson() calls json.Marshal() to serialise the value into []byte and calls rod.Put() with the result.
 func PutJson(tx *bolt.Tx, location, key string, v interface{}) error {
 	// now put this value in this key
@@ -112,6 +116,16 @@ func Get(tx *bolt.Tx, location, key string) ([]byte, error) {
 
 	// get this key
 	return b.Get([]byte(key)), nil
+}
+
+// GetString() calls rod.Get() and converts the []byte to a string before returning it to you. Everything that applies
+// there applies here too.
+func GetString(tx *bolt.Tx, location, key string) (string, error) {
+	raw, err := Get(tx, location, key)
+	if err != nil {
+		return "", err
+	}
+	return string(raw), nil
 }
 
 // GetJson() calls rod.Get() and then json.Unmarshal() with the result to deserialise the value into interface{}. If
@@ -191,8 +205,6 @@ func SelAll(tx *bolt.Tx, location string, newItem func() interface{}, append fun
 	// use a cursor to iterate through this bucket
 	c := b.Cursor()
 	for k, v := c.First(); k != nil; k, v = c.Next() {
-		fmt.Printf("%s = %s\n", k, string(v))
-
 		// get a new thing
 		item := newItem()
 		err := json.Unmarshal(v, &item)
