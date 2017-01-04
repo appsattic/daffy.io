@@ -3,10 +3,11 @@ package types
 import "time"
 
 type User struct {
-	Name      string   // e.g. "chilts" (ie. their Twitter handle)
+	Id        string   // e.g. "de58631b-fd37-40a4-8573-c96acd7ed22e"
+	Name      string   // e.g. "chilts" (unique)
 	Title     string   // e.g. "Andrew Chilton"
 	Email     string   // e.g. "andychilton@gmail.com"
-	SocialIds []string // e.g. [ "twitter-123456", "facebook-123" ]
+	SocialIds []string // e.g. [ "twitter:123456", "facebook:123" ]
 	Inserted  time.Time
 	Updated   time.Time
 }

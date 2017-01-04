@@ -4,11 +4,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Machiel/slugify"
 	"github.com/boltdb/bolt"
 	"github.com/chilts/rod"
+	uuid "github.com/hashicorp/go-uuid"
 
 	"internal/types"
 )
+
+var userBucket = "user"
+var socialBucket = "social"
+var indexUserNameUniqueIndex = "i-u-n-u"
 
 type BoltStore struct {
 	filename string
@@ -49,32 +55,34 @@ func (b *BoltStore) LogIn(provider, id, nickName, title, email string) (*types.U
 	fmt.Printf("* email=%#v\n", email)
 
 	err := b.db.Update(func(tx *bolt.Tx) error {
-		// create a socialId that we use internally
+		// create a socialId that we use internally (to look the user up)
 		socialId := provider + ":" + id
 
 		// fetch this Social entity
-		errGetSocial := rod.GetJson(tx, "social", socialId, &social)
+		errGetSocial := rod.GetJson(tx, socialBucket, socialId, &social)
 		if errGetSocial != nil {
 			return errGetSocial
 		}
 
 		// check to see if the socialId exists
 		if social.Id != "" {
+			fmt.Printf("Got social = %#v\n", social)
 			// get this user - should ALWAYS work if the above Social exists
-			errGetUser := rod.GetJson(tx, "user", social.UserName, &user)
+			errGetUser := rod.GetJson(tx, userBucket, social.UserId, &user)
+			fmt.Printf("Got user = %#v\n", user)
 			if errGetUser != nil {
 				return errGetUser
 			}
 			return nil
 		}
 
-		// create a unique userName for this user - they can change it if they like
-		userName := provider + ":" + id + ":" + nickName
+		// create a unique UserId for this user (this never changes)
+		userId, _ := uuid.GenerateUUID()
 
 		// create the Social
 		social = types.Social{
 			Id:       socialId,
-			UserName: userName,
+			UserId:   userId,
 			NickName: nickName,
 			Title:    title,
 			Email:    email,
@@ -82,13 +90,17 @@ func (b *BoltStore) LogIn(provider, id, nickName, title, email string) (*types.U
 			Updated:  now,
 		}
 		fmt.Printf("Adding a new Social = %#v\n", social)
-		errPutSocial := rod.PutJson(tx, "social", socialId, social)
+		errPutSocial := rod.PutJson(tx, socialBucket, socialId, social)
 		if errPutSocial != nil {
 			return errPutSocial
 		}
 
+		// create a unique userName for this user - they can change it if they like
+		userName := slugify.Slugify(nickName + "-" + id)
+
 		// create the User
 		user = types.User{
+			Id:    userId,
 			Name:  userName,
 			Title: title,
 			Email: email,
@@ -99,9 +111,15 @@ func (b *BoltStore) LogIn(provider, id, nickName, title, email string) (*types.U
 			Updated:  now,
 		}
 		fmt.Printf("Adding a new User = %#v\n", user)
-		errPutUser := rod.PutJson(tx, "user", user.Name, user)
+		errPutUser := rod.PutJson(tx, userName, userId, user)
 		if errPutUser != nil {
 			return errPutUser
+		}
+
+		// index the User.Name so it is unique
+		errPutIndex := rod.PutString(tx, indexUserNameUniqueIndex, userName, userId)
+		if errPutIndex != nil {
+			return errPutIndex
 		}
 
 		fmt.Printf("all done\n")
