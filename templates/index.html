@@ -1,14 +1,33 @@
 {{ template "header.html" . }}
 
-{{ if .User }}
-  <h2>Your Articles/Posts/Pictures/Whatever</h2>
-  <p>This might a list of things owned by this user.</p>
-{{ else }}
-  <h2>Please Log In.</h2>
-  <ul>
-    <li><a href="/auth/twitter">Sign In with Twitter</a></li>
-  </ul>
-{{ end }}
-  <p>(Ends)</p>
+  <div class="daffy-content">
+
+    <!-- Add multiple sections if you like -->
+    <!-- section -->
+    <section class="daffy-section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+      <div class="mdl-card mdl-cell mdl-cell--12-col">
+        <div class="mdl-card__supporting-text">
+          <h4>Technology</h4>
+          <p>
+            Dolore ex deserunt aute fugiat aute nulla ea sunt aliqua nisi cupidatat eu. Nostrud in laboris labore nisi
+            amet do dolor eu fugiat consectetur elit cillum esse. Pariatur occaecat nisi laboris tempor laboris eiusmod
+            qui id Lorem esse commodo in. Exercitation aute dolore deserunt culpa consequat elit labore incididunt elit
+            anim.
+          </p>
+          <p>
+            Dolore ex deserunt aute fugiat aute nulla ea sunt aliqua nisi cupidatat eu. Nostrud in laboris labore nisi
+            amet do dolor eu fugiat consectetur elit cillum esse. Pariatur occaecat nisi laboris tempor laboris eiusmod
+            qui id Lorem esse commodo in. Exercitation aute dolore deserunt culpa consequat elit labore incididunt elit
+            anim.
+          </p>
+        </div>
+        <div class="mdl-card__actions">
+          <a href="#" class="mdl-button mdl-js-button mdl-button--primary">Read our features</a>
+        </div>
+      </div>
+    </section>
+    <!-- /section -->
+
+  </div>
 
 {{ template "footer.html" . }}
