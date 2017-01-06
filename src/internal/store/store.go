@@ -9,5 +9,5 @@ type Api interface {
 	Close() error
 
 	// socialId is just "twitter-123456", "facebook-777", or "github-13579"
-	LogIn(provider, socialId, socialUserName, title, email string) (*types.User, error)
+	LogIn(userId, provider, socialId, socialUserName, title, email string) (*types.User, error)
 }

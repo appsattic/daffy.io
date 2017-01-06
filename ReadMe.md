@@ -1,4 +1,4 @@
-# WebApp #
+# daffy.io #
 
 A simple skeleton webapp which does a number of things for you already:
 

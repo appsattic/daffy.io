@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/twitter"
 
 	"internal/store"
@@ -78,6 +79,8 @@ func main() {
 	check(errOpen)
 	defer boltStore.Close()
 
+	// Example : https://raw.githubusercontent.com/markbates/goth/master/examples/main.go
+
 	// Twitter
 	//
 	// Create a new app : https://apps.twitter.com/app/new
@@ -88,16 +91,36 @@ func main() {
 	// * DAFFY_TWITTER_CONSUMER_SECRET
 	twitterConsumerKey := os.Getenv("DAFFY_TWITTER_CONSUMER_KEY")
 	twitterConsumerSecret := os.Getenv("DAFFY_TWITTER_CONSUMER_SECRET")
-	twitter := twitter.NewAuthenticate(twitterConsumerKey, twitterConsumerSecret, baseUrl+"/auth/twitter/callback")
+	twitterProvider := twitter.NewAuthenticate(twitterConsumerKey, twitterConsumerSecret, baseUrl+"/auth/twitter/callback")
+
+	// GitHub
+	//
+	// Follow the instructions here or here:
+	//
+	// * https://github.com/settings/developers
+	// * https://github.com/organizations/<your-organization>/settings/applications
+	//
+	// Requires:
+	//
+	// * DAFFY_GITHUB_CLIENT_ID
+	// * DAFFY_GITHUB_CLIENT_SECRET
+	githubClientId := os.Getenv("DAFFY_GITHUB_CLIENT_ID")
+	githubClientSecret := os.Getenv("DAFFY_GITHUB_CLIENT_SECRET")
+	githubProvider := github.New(githubClientId, githubClientSecret, baseUrl+"/auth/github/callback")
 
 	// goth
-	goth.UseProviders(twitter)
+	goth.UseProviders(twitterProvider, githubProvider)
 
 	// router
 	p := pat.New()
 
 	p.Get("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
 		session, _ := sessionStore.Get(r, sessionName)
+		currentUser := getUserFromSession(session)
+		userId := ""
+		if currentUser != nil {
+			userId = currentUser.Id
+		}
 
 		// get this provider name from the URL
 		provider := r.URL.Query().Get(":provider")
@@ -112,8 +135,7 @@ func main() {
 		fmt.Printf("authUser=%#v\n", authUser)
 
 		// check to see if this socialId already exists
-		// socialId := provider + "-" + authUser.UserID
-		user, err := boltStore.LogIn(provider, authUser.UserID, authUser.NickName, authUser.Name, authUser.Email)
+		user, err := boltStore.LogIn(userId, provider, authUser.UserID, authUser.NickName, authUser.Name, authUser.Email)
 		if err != nil {
 			log.Print(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -129,7 +151,7 @@ func main() {
 			return
 		}
 
-		// set this info in the session
+		// set this info in the session (whether new or updated with a new SocialId)
 		session.Values["user"] = &user
 
 		// save all sessions
