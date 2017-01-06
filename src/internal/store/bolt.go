@@ -1,6 +1,7 @@
 package store
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,10 @@ import (
 	uuid "github.com/hashicorp/go-uuid"
 
 	"internal/types"
+)
+
+var (
+	ErrSocialAccountAlreadyExists = errors.New("This social account already exists and is owned by another user.")
 )
 
 var userBucket = "user"
@@ -70,6 +75,16 @@ func (b *BoltStore) LogIn(userId, provider, id, nickName, title, email string) (
 		// check to see if the socialId exists
 		if social.Id != "" {
 			fmt.Printf("Got social = %#v\n", social)
+
+			// Now that we have the user (from an existing Social), check to see if this matches the current user if
+			// one is currently logged in.
+			if isLoggedIn {
+				if social.UserId != userId {
+					fmt.Printf("Social account already exists and is owned by another user already")
+					return ErrSocialAccountAlreadyExists
+				}
+			}
+
 			// get this user - should ALWAYS work if the above Social exists
 			errGetUser := rod.GetJson(tx, userBucket, social.UserId, &user)
 			fmt.Printf("Got user = %#v\n", user)
