@@ -3,6 +3,7 @@
 A simple skeleton webapp which does a number of things for you.
 
 * runs a server (which check for which PORT to listen to)
+* deals with encrypted sessions for logins
 * allows login with the following social networks:
     * Twitter
     * GitHub
@@ -12,6 +13,10 @@ A simple skeleton webapp which does a number of things for you.
 * stores all users in a `user` table
 * allows user to change their username
 * allows user to see which social networks they have logged in with
+
+This project is not designed to be deployed but instead to be cloned and changed as you will.
+
+This is a [gb](https://getgb.io/) project, but probably can be converted to the vanilla go toolchain easily enough.
 
 ## Author ##
 
