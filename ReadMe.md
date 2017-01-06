@@ -1,17 +1,17 @@
 # daffy.io #
 
-A simple skeleton webapp which does a number of things for you already:
+A simple skeleton webapp which does a number of things for you.
 
 * runs a server (which check for which PORT to listen to)
 * allows login with the following social networks:
     * Twitter
-    * Facebook
-    * Google
-    * Instagram
     * GitHub
+    * others easily added
 * opens and uses a BoltDB key/value datastore
 * stores all social IDs in a `social` table
 * stores all users in a `user` table
+* allows user to change their username
+* allows user to see which social networks they have logged in with
 
 ## Author ##
 
@@ -21,8 +21,6 @@ For [AppsAttic](https://appsattic.com), [@AppsAttic](https://twitter.com/AppsAtt
 
 ## License ##
 
-[AGPLv3](https://www.gnu.org/licenses/agpl-3.0.txt).
-
-This project is free software and can be forked, downloaded, used, and shared.
+[MIT](https://appsattic.mit-license.org/2017/).
 
 (Ends)
