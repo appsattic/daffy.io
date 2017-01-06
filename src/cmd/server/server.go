@@ -176,6 +176,29 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
+	p.Get("/settings/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/settings/" {
+			http.NotFound(w, r)
+			return
+		}
+
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		data := struct {
+			Title string
+			User  *types.User
+		}{
+			"Settings - daffy.io",
+			user,
+		}
+		render(w, tmpl, "settings-index.html", data)
+	})
+
 	p.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)

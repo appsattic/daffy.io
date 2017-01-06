@@ -1,0 +1,31 @@
+{{ template "header.html" . }}
+
+  <div class="daffy-content">
+
+    <!-- section -->
+    <section class="daffy-section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+      <div class="mdl-card mdl-cell mdl-cell--12-col">
+        <div class="mdl-card__supporting-text">
+
+          <h4>Settings</h4>
+
+          <h5>Profile</h5>
+
+          <form method="POST" action="/settings/">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <input class="mdl-textfield__input" type="text" id="userName" value={{ .User.Name }}>
+              <label class="mdl-textfield__label" for="userName">UserName</label>
+            </div>
+            <div>
+              <input class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="submit" value="Save New Username" />
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </section>
+    <!-- /section -->
+
+  </div>
+
+{{ template "footer.html" . }}

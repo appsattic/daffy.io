@@ -6,8 +6,10 @@
 ## --------------------------------------------------------------------------------------------------------------------
 
  # --- General ---
+ export APP_NAME=Example
+ export NAKED_DOMAIN=example.com
+ export DAFFY_BASE_URL=https://example.com
  export DAFFY_PORT=8080
- export DAFFY_BASE_URL=http://localhost:8080
 
  # --- OAuth ---
 
