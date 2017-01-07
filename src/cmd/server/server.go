@@ -83,43 +83,34 @@ func main() {
 	// Example : https://raw.githubusercontent.com/markbates/goth/master/examples/main.go
 
 	// Twitter
-	//
-	// Create a new app : https://apps.twitter.com/app/new
-	//
-	// Requires:
-	//
-	// * DAFFY_TWITTER_CONSUMER_KEY
-	// * DAFFY_TWITTER_CONSUMER_SECRET
 	twitterConsumerKey := os.Getenv("DAFFY_TWITTER_CONSUMER_KEY")
 	twitterConsumerSecret := os.Getenv("DAFFY_TWITTER_CONSUMER_SECRET")
-	twitterProvider := twitter.NewAuthenticate(twitterConsumerKey, twitterConsumerSecret, baseUrl+"/auth/twitter/callback")
+	if twitterConsumerKey != "" {
+		twitterProvider := twitter.NewAuthenticate(twitterConsumerKey, twitterConsumerSecret, baseUrl+"/auth/twitter/callback")
+		goth.UseProviders(twitterProvider)
+	}
 
 	// Google (Plus)
 	//
-	// Goth has a `gplus` provider and not a `google`, however, I wonder if that is actually deprecated and will stop
-	// working eventually. Perhaps we don't care since it works the same, but just ends up a `gplus` prefix with each
-	// social entity, instead of a `google` one. ¯\_(ツ)_/¯
 	gplusClientId := os.Getenv("DAFFY_GPLUS_CLIENT_ID")
 	gplusClientSecret := os.Getenv("DAFFY_GPLUS_CLIENT_SECRET")
-	gplusProvider := gplus.New(gplusClientId, gplusClientSecret, baseUrl+"/auth/gplus/callback")
+	if gplusClientId != "" {
+		gplusProvider := gplus.New(gplusClientId, gplusClientSecret, baseUrl+"/auth/gplus/callback")
+		goth.UseProviders(gplusProvider)
+	}
 
 	// GitHub
-	//
-	// Follow the instructions here or here:
-	//
-	// * https://github.com/settings/developers
-	// * https://github.com/organizations/<your-organization>/settings/applications
-	//
-	// Requires:
-	//
-	// * DAFFY_GITHUB_CLIENT_ID
-	// * DAFFY_GITHUB_CLIENT_SECRET
 	githubClientId := os.Getenv("DAFFY_GITHUB_CLIENT_ID")
 	githubClientSecret := os.Getenv("DAFFY_GITHUB_CLIENT_SECRET")
-	githubProvider := github.New(githubClientId, githubClientSecret, baseUrl+"/auth/github/callback")
+	if githubClientId != "" {
+		githubProvider := github.New(githubClientId, githubClientSecret, baseUrl+"/auth/github/callback")
+		goth.UseProviders(githubProvider)
+	}
 
-	// goth
-	goth.UseProviders(twitterProvider, gplusProvider, githubProvider)
+	// Get the providers in use - you could use this to send to your templates so that they know which login links to
+	// support, however, you could also just hard-code them in the templates if you're only using one or two.
+	providers := goth.GetProviders()
+	fmt.Printf("providers=%#v\n", providers)
 
 	// router
 	p := pat.New()
