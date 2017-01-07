@@ -170,3 +170,24 @@ func (b *BoltStore) LogIn(userId, provider, id, nickName, title, email string) (
 
 	return &user, err
 }
+
+func (b *BoltStore) SelSocials(socialIds []string) ([]types.Social, error) {
+	socials := make([]types.Social, 0)
+
+	err := b.db.View(func(tx *bolt.Tx) error {
+		for _, socialId := range socialIds {
+			social := types.Social{}
+
+			errGetJson := rod.GetJson(tx, socialBucket, socialId, &social)
+			if errGetJson != nil {
+				return errGetJson
+			}
+
+			socials = append(socials, social)
+		}
+
+		return nil
+	})
+
+	return socials, err
+}

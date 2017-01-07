@@ -190,12 +190,22 @@ func main() {
 			return
 		}
 
+		// get all the social entities
+		socials, err := boltStore.SelSocials(user.SocialIds)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		data := struct {
-			Title string
-			User  *types.User
+			Title   string
+			User    *types.User
+			Socials []types.Social
 		}{
 			"Settings - daffy.io",
 			user,
+			socials,
 		}
 		render(w, tmpl, "settings-index.html", data)
 	})

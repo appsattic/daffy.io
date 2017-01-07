@@ -42,7 +42,7 @@
           <!-- Navigation. We hide it in small screens. -->
           <nav class="mdl-navigation mdl-layout--large-screen-only">
     {{ with .User }}
-            <a class="mdl-navigation__link" href="/account/">{{ .Name }}</a>
+            <a class="mdl-navigation__link" href="/settings/">{{ .Name }}</a>
             <a class="mdl-navigation__link" href="/logout">Log Out</a>
     {{ else }}
             <a class="mdl-navigation__link" href="/auth/twitter">Log in with Twitter</a>
