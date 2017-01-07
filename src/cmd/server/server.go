@@ -15,6 +15,7 @@ import (
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/github"
+	"github.com/markbates/goth/providers/gplus"
 	"github.com/markbates/goth/providers/twitter"
 
 	"internal/store"
@@ -93,6 +94,15 @@ func main() {
 	twitterConsumerSecret := os.Getenv("DAFFY_TWITTER_CONSUMER_SECRET")
 	twitterProvider := twitter.NewAuthenticate(twitterConsumerKey, twitterConsumerSecret, baseUrl+"/auth/twitter/callback")
 
+	// Google (Plus)
+	//
+	// Goth has a `gplus` provider and not a `google`, however, I wonder if that is actually deprecated and will stop
+	// working eventually. Perhaps we don't care since it works the same, but just ends up a `gplus` prefix with each
+	// social entity, instead of a `google` one. ¯\_(ツ)_/¯
+	gplusClientId := os.Getenv("DAFFY_GPLUS_CLIENT_ID")
+	gplusClientSecret := os.Getenv("DAFFY_GPLUS_CLIENT_SECRET")
+	gplusProvider := gplus.New(gplusClientId, gplusClientSecret, baseUrl+"/auth/gplus/callback")
+
 	// GitHub
 	//
 	// Follow the instructions here or here:
@@ -109,7 +119,7 @@ func main() {
 	githubProvider := github.New(githubClientId, githubClientSecret, baseUrl+"/auth/github/callback")
 
 	// goth
-	goth.UseProviders(twitterProvider, githubProvider)
+	goth.UseProviders(twitterProvider, gplusProvider, githubProvider)
 
 	// router
 	p := pat.New()

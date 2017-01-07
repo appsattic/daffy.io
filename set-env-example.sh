@@ -14,13 +14,28 @@
  # --- OAuth ---
 
  # Twitter:
- # * See - https://apps.twitter.com/
+ #
+ # * See : https://apps.twitter.com/
+ #
  export DAFFY_TWITTER_CONSUMER_KEY=
  export DAFFY_TWITTER_CONSUMER_SECRET=
 
+ # Google (Note: we say Google, but Goth uses `gplus` instead):
+ #
+ # * See : https://developers.google.com/identity/sign-in/web/devconsole-project
+ # * See : https://support.google.com/cloud/answer/6158849?hl=en
+ #
+ # Goth has a `gplus` provider and not a `google`, however, I wonder if that is actually deprecated and will stop
+ # working eventually. Perhaps we don't care since it works the same, but just ends up a `gplus` prefix with each
+ # social entity, instead of a `google` one. ¯\_(ツ)_/¯
+ export DAFFY_GPLUS_CLIENT_ID=
+ export DAFFY_GPLUS_CLIENT_SECRET=
+
  # GitHub:
- # * See - https://github.com/settings/developers
- # * See - https://github.com/organizations/<your-organization>/settings/applications
+ #
+ # * See : https://github.com/settings/developers
+ # * See : https://github.com/organizations/<your-organization>/settings/applications
+ #
  export DAFFY_GITHUB_CLIENT_ID=
  export DAFFY_GITHUB_CLIENT_SECRET=
 
