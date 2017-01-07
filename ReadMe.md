@@ -2,7 +2,7 @@
 
 A simple skeleton webapp which does a number of things for you.
 
-![Alt text](raw/master/daffy-logo.png?raw=true "daffy.io")
+![Logo for daffy.io](https://raw.githubusercontent.com/appsattic/daffy.io/master/daffy-logo.png "daffy.io")
 
 * runs a server (which check for which PORT to listen to)
 * deals with encrypted sessions for logins
