@@ -2,6 +2,8 @@
 
 A simple skeleton webapp which does a number of things for you.
 
+![Alt text](raw/master/daffy-logo.png?raw=true "daffy.io")
+
 * runs a server (which check for which PORT to listen to)
 * deals with encrypted sessions for logins
 * allows login with the following social networks:
@@ -27,5 +29,9 @@ For [AppsAttic](https://appsattic.com), [@AppsAttic](https://twitter.com/AppsAtt
 ## License ##
 
 [MIT](https://appsattic.mit-license.org/2017/).
+
+## Credits ##
+
+Logo by [Ema Dimitrova](https://thenounproject.com/term/duck/152370/).
 
 (Ends)
