@@ -50,6 +50,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/gorilla/schema",
+			"repository": "https://github.com/gorilla/schema",
+			"revision": "5838d20c7b66130c49f99e6e2f0892229e95161e",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/gorilla/securecookie",
 			"repository": "https://github.com/gorilla/securecookie",
 			"revision": "fa5329f913702981df43dcb2a380bac429c810b5",
