@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"os"
 
+	valid "github.com/asaskevich/govalidator"
 	"github.com/gomiddleware/logger"
 	"github.com/gorilla/pat"
+	"github.com/gorilla/schema"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -58,6 +60,9 @@ func init() {
 
 	// Register the user with `gob` so we can serialise it.
 	gob.Register(&types.User{})
+
+	// fail if fields haven't been set, or explicitely marked as optional
+	valid.SetFieldsRequiredByDefault(true)
 }
 
 func main() {
@@ -73,6 +78,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// create a decoder than can be used for all forms
+	var decoder = schema.NewDecoder()
 
 	// create/open/connect to a store
 	boltStore := store.NewBoltStore("daffy.db")
@@ -174,6 +182,58 @@ func main() {
 		session.Save(r, w)
 
 		// redirect to somewhere else
+		http.Redirect(w, r, "/", http.StatusFound)
+	})
+
+	p.Post("/settings/profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/settings/profile" {
+			http.NotFound(w, r)
+			return
+		}
+
+		// firstly, check the user is logged in
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		// parse the incoming form
+		err := r.ParseForm()
+		if err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// decode the form into a types.UpdateUser
+		updateUser := types.UpdateUser{}
+		err = decoder.Decode(&updateUser, r.PostForm)
+		// check if this errors is from `govalidator` rather than any other general kind of error
+		if err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// tell the API what to update
+		fmt.Printf("updateUser=%#v\n", updateUser)
+
+		// update this user
+		newUser, err := boltStore.UpdateUser(*user, updateUser)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Printf("* NEW * user = %v\n", newUser)
+
+		// save this new user
+		session.Values["user"] = &newUser
+		session.Save(r, w)
+
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 

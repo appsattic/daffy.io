@@ -11,18 +11,18 @@
 
           <h5>Profile</h5>
 
-          <form method="POST" action="/settings/">
+          <form method="POST" action="/settings/profile">
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: 100%;">
-              <input class="mdl-textfield__input" type="text" id="userName" value={{ .User.Name }} pattern="[A-Z,a-z,0-9][A-Z,a-z,0-9,-]+[A-Z,a-z,0-9]">
+              <input class="mdl-textfield__input" type="text" name="userName" id="userName" value={{ .User.Name }} pattern="[A-Z,a-z,0-9][A-Z,a-z,0-9,-]+[A-Z,a-z,0-9]">
               <label class="mdl-textfield__label" for="userName">UserName</label>
               <span class="mdl-textfield__error">Min 3 letters. Letters, numbers, and dashes only. Must start and end with a letter or number (not a dash).</span>
             </div>
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: 100%;">
-              <input class="mdl-textfield__input" type="text" id="title" value={{ .User.Title }}>
+              <input class="mdl-textfield__input" type="text" name="title" id="title" value={{ .User.Title }}>
               <label class="mdl-textfield__label" for="title">Name</label>
             </div>
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" style="width: 100%;">
-              <input class="mdl-textfield__input" type="email" id="email" value={{ .User.Email }}>
+              <input class="mdl-textfield__input" type="email" name="email" id="email" value={{ .User.Email }}>
               <label class="mdl-textfield__label" for="email">Email</label>
             </div>
             <div>

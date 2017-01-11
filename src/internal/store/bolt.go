@@ -3,9 +3,11 @@ package store
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/Machiel/slugify"
+	valid "github.com/asaskevich/govalidator"
 	"github.com/boltdb/bolt"
 	"github.com/chilts/rod"
 	uuid "github.com/hashicorp/go-uuid"
@@ -24,6 +26,10 @@ var indexUserNameUniqueIndex = "i-u-n-u"
 type BoltStore struct {
 	filename string
 	db       *bolt.DB
+}
+
+func now() time.Time {
+	return time.Now().UTC()
 }
 
 func NewBoltStore(filename string) *BoltStore {
@@ -190,4 +196,57 @@ func (b *BoltStore) SelSocials(socialIds []string) ([]types.Social, error) {
 	})
 
 	return socials, err
+}
+
+func (b *BoltStore) UpdateUser(currentUser types.User, updateUser types.UpdateUser) (types.User, error) {
+	var user types.User
+	now := now()
+
+	// first thing to do is validate the incoming info
+	isValid, errs := valid.ValidateStruct(updateUser)
+	if errs != nil {
+		return user, errs
+	}
+
+	log.Printf("isValid = %#v\n", isValid)
+	log.Printf("errs    = %#v\n", errs)
+
+	if !isValid {
+		// ToDo: ... !!!
+
+		// re-render the page with the errors
+
+		// ToDo: ... !!!
+	}
+
+	// Steps:
+	// 1. Get the full user out of the store
+	// 2. Update with the new fields
+	// 3. Re-save back out
+
+	err := b.db.Update(func(tx *bolt.Tx) error {
+		// get this user - should ALWAYS work if the above Social exists
+		errGetUser := rod.GetJson(tx, userBucket, currentUser.Id, &user)
+		fmt.Printf("Got user = %#v\n", user)
+		if errGetUser != nil {
+			return errGetUser
+		}
+
+		// update
+		user.Name = updateUser.Name
+		user.Title = updateUser.Title
+		user.Email = updateUser.Email
+		user.Updated = now
+
+		// re-save
+		errPutUser := rod.PutJson(tx, userBucket, user.Id, user)
+		fmt.Printf("errPutUser = %#v\n", errPutUser)
+		if errPutUser != nil {
+			return errPutUser
+		}
+
+		return nil
+	})
+
+	return user, err
 }

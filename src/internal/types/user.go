@@ -12,6 +12,12 @@ type User struct {
 	Updated   time.Time
 }
 
+type UpdateUser struct {
+	Name  string `schema:"userName" valid:"required,length(3|32),matches(^[a-z][a-z0-9-]+[a-z0-9]$)"`
+	Title string `schema:"title" valid:"required"`
+	Email string `schema:"email" valid:"required,email"`
+}
+
 // Validate firstly normalises the thing, then validates it and returns either true (valid) or false (invalid). It sets any messages onto
 // the Thing.Error field for display.
 func (x *User) Validate() bool {
