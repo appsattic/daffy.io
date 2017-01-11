@@ -8,6 +8,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/asaskevich/govalidator",
+			"repository": "https://github.com/asaskevich/govalidator",
+			"revision": "fdf19785fd3558d619ef81212f5edf1d6c2a5911",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/boltdb/bolt",
 			"repository": "https://github.com/boltdb/bolt",
 			"revision": "2e25e3bb4285d41d223bb80b12658a2c9b9bf3e3",
