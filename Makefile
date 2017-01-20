@@ -14,10 +14,10 @@ staticcheck:
 	GOPATH=/home/chilts/src/appsattic-daffy.io/vendor:/home/chilts/src/appsattic-daffy.io staticcheck src/internal/types/*.go
 	GOPATH=/home/chilts/src/appsattic-daffy.io/vendor:/home/chilts/src/appsattic-daffy.io staticcheck src/cmd/server/*.go
 
-test:
+test: fmt vet staticcheck
 	gb test -v
 
-build: fmt vet staticcheck test
+build: fmt
 	gb build all
 
 server: build
