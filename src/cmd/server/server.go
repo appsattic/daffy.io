@@ -11,7 +11,7 @@ import (
 
 	valid "github.com/asaskevich/govalidator"
 	"github.com/gomiddleware/logger"
-	"github.com/gorilla/pat"
+	"github.com/gomiddleware/mux"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
@@ -121,9 +121,12 @@ func main() {
 	fmt.Printf("providers=%#v\n", providers)
 
 	// router
-	p := pat.New()
+	m := mux.New()
 
-	p.Get("/auth/{provider}/callback", func(w http.ResponseWriter, r *http.Request) {
+	// some middlewares to always run
+	m.Use("/", logger.New())
+
+	m.Get("/auth/:provider/callback", func(w http.ResponseWriter, r *http.Request) {
 		session, _ := sessionStore.Get(r, sessionName)
 		currentUser := getUserFromSession(session)
 		userId := ""
@@ -131,8 +134,9 @@ func main() {
 			userId = currentUser.Id
 		}
 
-		// get this provider name from the URL
-		provider := r.URL.Query().Get(":provider")
+		// get this provider name from the router values
+		vals := mux.Vals(r)
+		provider := vals["provider"]
 
 		authUser, err := gothic.CompleteUserAuth(w, r)
 		if err != nil {
@@ -171,10 +175,10 @@ func main() {
 	})
 
 	// begin auth
-	p.Get("/auth/{provider}", gothic.BeginAuthHandler)
+	m.Get("/auth/:provider", gothic.BeginAuthHandler)
 
 	// logout
-	p.Get("/logout", func(w http.ResponseWriter, r *http.Request) {
+	m.Get("/logout", func(w http.ResponseWriter, r *http.Request) {
 		session, _ := sessionStore.Get(r, sessionName)
 
 		// scrub user
@@ -185,12 +189,7 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
-	p.Post("/settings/profile", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/settings/profile" {
-			http.NotFound(w, r)
-			return
-		}
-
+	m.Post("/settings/profile", func(w http.ResponseWriter, r *http.Request) {
 		// firstly, check the user is logged in
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
@@ -237,12 +236,7 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
-	p.Get("/my/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/my/" {
-			http.NotFound(w, r)
-			return
-		}
-
+	m.Get("/my/", func(w http.ResponseWriter, r *http.Request) {
 		// check the user is logged in
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
@@ -271,12 +265,7 @@ func main() {
 		render(w, tmpl, "my-index.html", data)
 	})
 
-	p.Get("/settings/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/settings/" {
-			http.NotFound(w, r)
-			return
-		}
-
+	m.Get("/settings/", func(w http.ResponseWriter, r *http.Request) {
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
 		if user == nil {
@@ -304,12 +293,7 @@ func main() {
 		render(w, tmpl, "settings-index.html", data)
 	})
 
-	p.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			http.NotFound(w, r)
-			return
-		}
-
+	m.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
 
@@ -324,11 +308,8 @@ func main() {
 		render(w, tmpl, "index.html", data)
 	})
 
-	// create the logger middleware
-	lgr := logger.New()
-
 	// server
 	log.Printf("Starting server, listening on port %s\n", port)
-	errServer := http.ListenAndServe(":"+port, lgr(p))
+	errServer := http.ListenAndServe(":"+port, m)
 	check(errServer)
 }
