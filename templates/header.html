@@ -44,7 +44,7 @@
           <!-- Navigation. We hide it in small screens. -->
           <nav class="mdl-navigation mdl-layout--large-screen-only">
     {{ with .User }}
-            <a class="mdl-navigation__link" href="/settings/">{{ .Name }}</a>
+            <a class="mdl-navigation__link" href="/my/">{{ .Name }}</a>
             <a class="mdl-navigation__link" href="/logout">Log Out</a>
     {{ else }}
             <a class="mdl-navigation__link" href="/auth/twitter">Log in with Twitter</a>
@@ -57,10 +57,12 @@
       <div class="mdl-layout__drawer">
         <span class="mdl-layout-title">Navigation</span>
         <nav class="mdl-navigation">
-          <a class="mdl-navigation__link" href="">Menu1</a>
-          <a class="mdl-navigation__link" href="">Menu2</a>
-          <a class="mdl-navigation__link" href="">Menu3</a>
-          <a class="mdl-navigation__link" href="">Menu4</a>
+          <a class="mdl-navigation__link" href="/">Home</a>
+    {{ with .User }}
+          <a class="mdl-navigation__link" href="/my/">My Daffy</a>
+          <a class="mdl-navigation__link" href="/settings/">Settings</a>
+          <a class="mdl-navigation__link" href="/logout">Log Out</a>
+    {{ end }}
         </nav>
       </div>
 

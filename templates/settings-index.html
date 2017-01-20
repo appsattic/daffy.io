@@ -35,6 +35,7 @@
           <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
             <thead>
               <tr>
+                <th class="mdl-data-table__cell--non-numeric">Provider / ID</th>
                 <th class="mdl-data-table__cell--non-numeric">Username</th>
                 <th class="mdl-data-table__cell--non-numeric">Title</th>
                 <th class="mdl-data-table__cell--non-numeric">Email</th>
@@ -43,6 +44,7 @@
             <tbody>
             {{ range .Socials }}
               <tr>
+                <td class="mdl-data-table__cell--non-numeric">{{ .Id }}</td>
                 <td class="mdl-data-table__cell--non-numeric">{{ .NickName }}</td>
                 <td class="mdl-data-table__cell--non-numeric">{{ .Title }}</td>
                 <td class="mdl-data-table__cell--non-numeric">{{ with .Email }}&lt;{{ . }}&gt;{{ else }}<em>n/a</em>{{ end }}</td>

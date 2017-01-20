@@ -237,6 +237,40 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
+	p.Get("/my/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/my/" {
+			http.NotFound(w, r)
+			return
+		}
+
+		// check the user is logged in
+		session, _ := sessionStore.Get(r, sessionName)
+		user := getUserFromSession(session)
+		if user == nil {
+			http.Redirect(w, r, "/", http.StatusFound)
+			return
+		}
+
+		// get all the social entities
+		socials, err := boltStore.SelSocials(user.SocialIds)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		data := struct {
+			Title   string
+			User    *types.User
+			Socials []types.Social
+		}{
+			"My Daffy - daffy.io",
+			user,
+			socials,
+		}
+		render(w, tmpl, "my-index.html", data)
+	})
+
 	p.Get("/settings/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/settings/" {
 			http.NotFound(w, r)

@@ -1,0 +1,50 @@
+{{ template "header.html" . }}
+
+  <div class="daffy-content">
+
+    <!-- section -->
+    <section class="daffy-section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+      <div class="mdl-card mdl-cell mdl-cell--12-col">
+        <div class="mdl-card__supporting-text">
+
+          <h4>My Daffy</h4>
+
+          <h5>Connected Accounts</h5>
+
+          <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%;">
+            <thead>
+              <tr>
+                <th class="mdl-data-table__cell--non-numeric">Provider / ID</th>
+                <th class="mdl-data-table__cell--non-numeric">Username</th>
+                <th class="mdl-data-table__cell--non-numeric">Title</th>
+                <th class="mdl-data-table__cell--non-numeric">Email</th>
+              </tr>
+            </thead>
+            <tbody>
+            {{ range .Socials }}
+              <tr>
+                <td class="mdl-data-table__cell--non-numeric">{{ .Id }}</td>
+                <td class="mdl-data-table__cell--non-numeric">{{ .NickName }}</td>
+                <td class="mdl-data-table__cell--non-numeric">{{ .Title }}</td>
+                <td class="mdl-data-table__cell--non-numeric">{{ with .Email }}&lt;{{ . }}&gt;{{ else }}<em>n/a</em>{{ end }}</td>
+              </tr>
+            {{ end }}
+            </tbody>
+          </table>
+
+          <h6>Profile</h6>
+
+          <p>
+            <a href="/settings/">Edit my profile info</a>.
+          </p>
+
+          <p>(Ends)</p>
+
+        </div>
+      </div>
+    </section>
+    <!-- /section -->
+
+  </div>
+
+{{ template "footer.html" . }}
