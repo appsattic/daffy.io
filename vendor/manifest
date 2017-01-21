@@ -50,12 +50,6 @@
 			"branch": "master"
 		},
 		{
-			"importpath": "github.com/gorilla/pat",
-			"repository": "https://github.com/gorilla/pat",
-			"revision": "cf955c3d1f2c27ee96f93e9738085c762ff5f49d",
-			"branch": "master"
-		},
-		{
 			"importpath": "github.com/gorilla/schema",
 			"repository": "https://github.com/gorilla/schema",
 			"revision": "5838d20c7b66130c49f99e6e2f0892229e95161e",
