@@ -38,6 +38,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/gomiddleware/slash",
+			"repository": "https://github.com/gomiddleware/slash",
+			"revision": "b26e7de9d38339fc28939e235a14315b7209f80a",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/gorilla/context",
 			"repository": "https://github.com/gorilla/context",
 			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
