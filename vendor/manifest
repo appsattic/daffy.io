@@ -34,7 +34,7 @@
 		{
 			"importpath": "github.com/gomiddleware/mux",
 			"repository": "https://github.com/gomiddleware/mux",
-			"revision": "4c4b79a1808570378c3091de6e3ec9883573e7e7",
+			"revision": "24afc87ac181c6200e209ef670e210f190452202",
 			"branch": "master"
 		},
 		{

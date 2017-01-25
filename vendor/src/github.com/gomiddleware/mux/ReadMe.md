@@ -36,25 +36,30 @@ go get github.com/gomiddleware/mux
 
 ```go
 // new Mux
-r := mux.New()
+m := mux.New()
 
 // log every request
-r.Use("/", logger.New())
+m.Use("/", logger.New())
 
 // serve a static set of files under "/s/"
-r.All("/s", http.FileServer(http.Dir("./static")))
+m.All("/s", http.FileServer(http.Dir("./static")))
 
 // every (non-static) request gets a 'X-Request-ID' request header
-r.Use("/", reqid.RandomId)
+m.Use("/", reqid.RandomId)
 
 // serve the /about page
-r.Get("/about", aboutHandler)
+m.Get("/about", aboutHandler)
 
-// note each hit on the home page
-r.Get("/", incHomeHits, homeHandler)
+// serve home, with one middleware specific to it's route
+m.Get("/", incHomeHits, homeHandler)
+
+// now check if adding any of the routes failed
+if m.Err != nil {
+    log.Fatal(m.Err)
+}
 
 // start the server
-http.ListenAndServe(":8080", r)
+http.ListenAndServe(":8080", m)
 ```
 
 ## Author ##

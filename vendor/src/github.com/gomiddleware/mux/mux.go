@@ -15,6 +15,9 @@ const valsIdKey key = 999
 
 // Errors that can be returned from this package.
 var (
+	// ErrPathMustStartWithSlash is returned when you create a route which doesn't start with a slash.
+	ErrPathMustStartWithSlash = errors.New("mux: path must start with a slash")
+
 	// ErrMultipleHandlers is returned when you create a route with multiple handlers.
 	ErrMultipleHandlers = errors.New("mux: route has been given two handlers but only one can be provider")
 
@@ -50,10 +53,11 @@ type Prefix struct {
 	Handler     http.Handler
 }
 
-// Mux is just an array of Route.
+// Mux is an array of routes, prefixes, and an error (if one has happened).
 type Mux struct {
 	routes   []Route
 	prefixes []Prefix
+	Err      error
 }
 
 // Make sure the Mux conforms with the http.Handler interface.
@@ -65,9 +69,8 @@ func New() *Mux {
 }
 
 // Get is a shortcut for mux.add("GET", path, things...)
-func (m *Mux) Get(path string, things ...interface{}) error {
-	log.Printf("NewGet()\n")
-	return m.add("GET", path, things...)
+func (m *Mux) Get(path string, things ...interface{}) {
+	m.add("GET", path, things...)
 }
 
 // Post is a shortcut for mux.add("POST", path, things...)
@@ -107,26 +110,31 @@ func (m *Mux) Head(path string, things ...interface{}) {
 //
 // Note however, m.Use("/profile/", ...) doesn't match "/profile" since it contains too many slashes. But
 // m.Use("/profile", ...) does match "/profile/" and "/profile/..." (but check that's actually what you want here).
-func (m *Mux) Use(path string, things ...interface{}) error {
-	return m.add("USE", path, things...)
+func (m *Mux) Use(path string, things ...interface{}) {
+	m.add("USE", path, things...)
 }
 
 // All adds a handler to a path prefix for all methods. Essentially a catch-all. Unlike other methods such as Get,
 // Post, Put, Patch, and Delete, All matches for the prefix only and not the entire path.
 //
 // e.g. m.All("/s", ...) matches the requests "/s/img.png", "/s/css/styles.css", and "/s/js/app.js".
-func (m *Mux) All(path string, things ...interface{}) error {
-	return m.add("ALL", path, things...)
+func (m *Mux) All(path string, things ...interface{}) {
+	m.add("ALL", path, things...)
 }
 
 // add registers a new request handle with the given path and method.
 //
 // The respective shortcuts (for GET, POST, PUT, PATCH and DELETE) can also be used.
-func (m *Mux) add(method, path string, things ...interface{}) error {
+func (m *Mux) add(method, path string, things ...interface{}) {
+	if m.Err != nil {
+		return
+	}
+
 	log.Printf("--> add(): %s %s\n", method, path)
 
-	if path[0] != '/' {
-		panic("path must begin with '/' in path '" + path + "'")
+	if len(path) == 0 || path[0] != '/' {
+		m.Err = ErrPathMustStartWithSlash
+		return
 	}
 
 	if m.routes == nil {
@@ -149,7 +157,8 @@ func (m *Mux) add(method, path string, things ...interface{}) error {
 			// if we already have a handler, then we should bork
 			if handler != nil {
 				log.Printf("returning ErrMiddlewareAfterHandler")
-				return ErrMiddlewareAfterHandler
+				m.Err = ErrMiddlewareAfterHandler
+				return
 			}
 			// all good, so add the middleware
 			log.Printf("adding to middlewares")
@@ -158,7 +167,8 @@ func (m *Mux) add(method, path string, things ...interface{}) error {
 			log.Printf("got http.Handler\n")
 			if handler != nil {
 				log.Printf("already got a handler")
-				return ErrMultipleHandlers
+				m.Err = ErrMultipleHandlers
+				return
 			}
 			// all good, so remember the handler
 			log.Printf("adding a handler")
@@ -167,13 +177,15 @@ func (m *Mux) add(method, path string, things ...interface{}) error {
 			log.Printf("got func(http.ResponseWriter, *http.Request)\n")
 			if handler != nil {
 				log.Printf("already got a handler")
-				return ErrMultipleHandlers
+				m.Err = ErrMultipleHandlers
+				return
 			}
 			// all good, so remember the handler
 			log.Printf("adding a HandlerFunc")
 			handler = http.HandlerFunc(val)
 		default:
-			return ErrUnknownTypeInRoute
+			m.Err = ErrUnknownTypeInRoute
+			return
 		}
 	}
 
@@ -239,7 +251,6 @@ func (m *Mux) add(method, path string, things ...interface{}) error {
 	}
 
 	log.Printf("routes=%#v\n", m.routes)
-	return nil
 }
 
 func isPrefixMatch(segments []string, prefixSegments []string) bool {
