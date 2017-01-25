@@ -123,6 +123,10 @@ func main() {
 	// router
 	m := mux.New()
 
+	m.All("/s", fileServer("static"))
+	m.Get("/favicon.ico", serveFile("./static/favicon.ico"))
+	m.Get("/robots.txt", serveFile("./static/robots.txt"))
+
 	// some middlewares to always run
 	m.Use("/", logger.New())
 
@@ -307,6 +311,8 @@ func main() {
 
 		render(w, tmpl, "index.html", data)
 	})
+
+	check(m.Err)
 
 	// server
 	log.Printf("Starting server, listening on port %s\n", port)
