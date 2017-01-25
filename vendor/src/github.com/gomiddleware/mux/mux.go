@@ -26,7 +26,11 @@ var (
 	ErrUnknownTypeInRoute = errors.New("mux: unexpected type passed to route")
 )
 
-// Route is an internal method/path/middlewares/handler type created when each route is added.
+// Route is an internal "method + path + middlewares + handler" type created when each route is added. When adding a
+// handler for Get(), Post(), Put(), Delete(), Options(), and Patch(), the middlewares prior to this route (and any on
+// this route) are combined to create the final handler.
+//
+// These are not computed during routing but when added to the router, therefore they have negligible overhead.
 type Route struct {
 	Method      string
 	Path        string
@@ -36,9 +40,20 @@ type Route struct {
 	Handler     http.Handler
 }
 
+// Prefix is an internal "path + middlewares" type created when each middleware prefix is added. When adding we'll
+// add the middlewares to the array of Middlewares.
+type Prefix struct {
+	Path        string
+	Segments    []string
+	Length      int
+	Middlewares []func(http.Handler) http.Handler
+	Handler     http.Handler
+}
+
 // Mux is just an array of Route.
 type Mux struct {
-	routes []Route
+	routes   []Route
+	prefixes []Prefix
 }
 
 // Make sure the Mux conforms with the http.Handler interface.
@@ -75,6 +90,16 @@ func (m *Mux) Delete(path string, things ...interface{}) {
 	m.add("DELETE", path, things...)
 }
 
+// Options is a shortcut for mux.add("OPTIONS", path, things...)
+func (m *Mux) Options(path string, things ...interface{}) {
+	m.add("OPTIONS", path, things...)
+}
+
+// Head is a shortcut for mux.add("HEAD", path, things...)
+func (m *Mux) Head(path string, things ...interface{}) {
+	m.add("HEAD", path, things...)
+}
+
 // Use adds some middleware to a path prefix. Unlike other methods such as Get, Post, Put, Patch, and Delete, Use
 // matches for the prefix only and not the entire path. (Though of course, the entire exact path also matches.)
 //
@@ -82,17 +107,23 @@ func (m *Mux) Delete(path string, things ...interface{}) {
 //
 // Note however, m.Use("/profile/", ...) doesn't match "/profile" since it contains too many slashes. But
 // m.Use("/profile", ...) does match "/profile/" and "/profile/..." (but check that's actually what you want here).
-//
-// Also note that if you Use("/s/"), then this can be used to handle all static files inside /s/.
 func (m *Mux) Use(path string, things ...interface{}) error {
 	return m.add("USE", path, things...)
+}
+
+// All adds a handler to a path prefix for all methods. Essentially a catch-all. Unlike other methods such as Get,
+// Post, Put, Patch, and Delete, All matches for the prefix only and not the entire path.
+//
+// e.g. m.All("/s", ...) matches the requests "/s/img.png", "/s/css/styles.css", and "/s/js/app.js".
+func (m *Mux) All(path string, things ...interface{}) error {
+	return m.add("ALL", path, things...)
 }
 
 // add registers a new request handle with the given path and method.
 //
 // The respective shortcuts (for GET, POST, PUT, PATCH and DELETE) can also be used.
 func (m *Mux) add(method, path string, things ...interface{}) error {
-	log.Printf("add()\n")
+	log.Printf("--> add(): %s %s\n", method, path)
 
 	if path[0] != '/' {
 		panic("path must begin with '/' in path '" + path + "'")
@@ -116,7 +147,8 @@ func (m *Mux) add(method, path string, things ...interface{}) error {
 		case func(http.Handler) http.Handler:
 			log.Printf("got func(http.Handler) http.Handler\n")
 			// if we already have a handler, then we should bork
-			if len(middlewares) > 0 {
+			if handler != nil {
+				log.Printf("returning ErrMiddlewareAfterHandler")
 				return ErrMiddlewareAfterHandler
 			}
 			// all good, so add the middleware
@@ -147,40 +179,88 @@ func (m *Mux) add(method, path string, things ...interface{}) error {
 
 	log.Printf("add(): now adding to the handlers\n")
 
-	// create our handler which contains everything we need
-	route := Route{
-		Method:      method,
-		Path:        path,
-		Segments:    segments,
-		Length:      len(segments),
-		Middlewares: middlewares,
-		Handler:     handler,
+	// If this is middleware, ie. USE, then there is nothing more to do, but if it is any other method, then we need to
+	// create the final handler from any prefix middleware prior to this, and any middleware AND handler for this route.
+	// If there is no handler for this route, then it is an error.
+	if method == "USE" {
+		log.Printf("mux: this is a USE prefix, nothing more to do here")
+		if handler != nil {
+			// this is not an error, since you might have a static server for a prefix, such as "/s"
+		}
+		prefix := Prefix{
+			Path:        path,
+			Segments:    segments,
+			Length:      len(segments),
+			Middlewares: middlewares,
+			Handler:     handler,
+		}
+
+		// add  it to the middlewares
+		m.prefixes = append(m.prefixes, prefix)
+	} else {
+		// GET, PUT, PATCH, POST, DELETE, OPTIONS, HEAD, and ALL!
+
+		// generate our wrapped handler, wrapping each in reverse order from the current route, back down through each route
+		wrappedHandler := handler
+		for i := range middlewares {
+			log.Printf("- wrapping handler with middleware from route (m=%d)\n", i)
+			middleware := middlewares[len(middlewares)-1-i]
+			wrappedHandler = middleware(wrappedHandler)
+		}
+
+		// now, go in reverse order through each added middleware and do the same thing
+		for j := range m.prefixes {
+			log.Printf("- checking prefix %d to add middleware\n", j)
+			prefix := m.prefixes[len(m.prefixes)-1-j]
+
+			if isPrefixMatch(segments, prefix.Segments) {
+				log.Printf("- this prefix matches this route\n")
+				// and again, get each middleware in reverse order
+				for i := range prefix.Middlewares {
+					log.Printf("- wrapping handler with middleware from prefix (m=%d)\n", i)
+					middleware := prefix.Middlewares[len(prefix.Middlewares)-1-i]
+					wrappedHandler = middleware(wrappedHandler)
+				}
+			}
+		}
+
+		// create our handler which contains everything we need
+		route := Route{
+			Method:      method,
+			Path:        path,
+			Segments:    segments,
+			Length:      len(segments),
+			Middlewares: nil, // we've already wrapped the handler
+			Handler:     wrappedHandler,
+		}
+
+		// add it to the route handlers
+		m.routes = append(m.routes, route)
 	}
 
-	// add it to the handlers
-	m.routes = append(m.routes, route)
-
-	// log.Printf("routes=%#v\n", m.routes)
+	log.Printf("routes=%#v\n", m.routes)
 	return nil
 }
 
-func isPrefixMatch(segments []string, route *Route) bool {
+func isPrefixMatch(segments []string, prefixSegments []string) bool {
 	log.Printf("isPrefixMatch: %v\n", segments)
 
-	log.Printf("Checking against %#v\n", route)
+	log.Printf("Checking against prefixSegments: %#v\n", prefixSegments)
+
+	prefixLength := len(prefixSegments)
 
 	// if segments is just []string{''} (ie, from "/"), then this will match everything
-	if route.Length == 1 && route.Segments[0] == "" {
+	if prefixLength == 1 && prefixSegments[0] == "" {
 		return true
 	}
 
-	// can't match if the route prefix length is longer than the URL
-	if route.Length > len(segments) {
+	// can't match if the prefix path length is longer than the URL
+	if prefixLength > len(segments) {
 		return false
 	}
 
 	// check each segment is the same (for the length of the prefix)
-	for i, segment := range route.Segments {
+	for i, segment := range prefixSegments {
 		log.Printf("isPrefixMatch: checking '%s' against '%s'\n", segments[i], segment)
 
 		// if both segments are empty, then this matches
@@ -249,15 +329,15 @@ func isMatch(method string, segments []string, route *Route) (map[string]string,
 	return vals, true
 }
 
-// ServeHTTP
+// ServeHTTP makes the router implement the http.Handler interface.
 func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("--- NEW REQUEST %s %s ---\n", r.Method, r.URL.Path)
 
 	method := r.Method
 	normPath := path.Clean(r.URL.Path)
 	log.Printf("request: method=%#v\n", method)
-	log.Printf("request: path1=%#v\n", r.URL.Path)
-	log.Printf("request: path2=%#v\n", normPath)
+	log.Printf(" - r.URL.Path = %#v\n", r.URL.Path)
+	log.Printf(" - normalised = %#v\n", normPath)
 
 	// if the original path ends in a slash
 	if normPath != "/" {
@@ -265,6 +345,8 @@ func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			normPath = normPath + "/"
 		}
 	}
+
+	log.Printf(" - normalised = %#v\n", normPath)
 
 	// if these paths differ, then redirect to the real one
 	if normPath != r.URL.Path {
@@ -282,62 +364,40 @@ func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		var vals map[string]string
 		var matched bool
-		// check to see if this is just a USE (and therefore, a prefix match)
-		if route.Method == "USE" {
-			log.Printf("This route is a USE, therefore, we just check the prefix\n")
-			matched = isPrefixMatch(segments, &route)
+
+		// check if we need to check against a prefix or the entire path
+		if route.Method == "ALL" {
+			// check the prefix
+			matched = isPrefixMatch(segments, route.Segments)
+			if matched {
+				vals = make(map[string]string)
+				vals["path"] = strings.TrimPrefix(normPath, route.Path)
+			}
 		} else {
-			log.Printf("This route is a GET/POST/PUT/etc, therefore, we match the entire segment length\n")
+			// check the entire path
 			vals, matched = isMatch(method, segments, &route)
-			log.Printf("vals1=%#v\n", vals)
-
-			ctx := context.WithValue(r.Context(), valsIdKey, vals)
-			r = r.WithContext(ctx)
 		}
-
-		// if matched, then we have a non-nil 'vals' too, even if it contains no values
-		if matched {
-			log.Printf("matched, calling all middlewares in this route:")
-			// loop over all middlewares in this route
-			for j, middleware := range route.Middlewares {
-				log.Printf(" - route #%d\n", j)
-
-				// presume the middleware deals with this request fully (and doesn't call `next`)
-				finished := true
-
-				// call the middleware ... passing this `next` function to see if we want the next handler
-				next := func(w http.ResponseWriter, r *http.Request) {
-					log.Printf("*** next has been called\n")
-					finished = false
-				}
-
-				nextHandlerFunc := http.HandlerFunc(next)
-
-				// now call the middleware with our next
-				log.Printf("before middleware\n")
-				// log.Printf("vals2=%#v\n", vals)
-				// ctx := context.WithValue(r.Context(), valsIdKey, vals)
-				middleware(nextHandlerFunc).ServeHTTP(w, r)
-				log.Printf("after middleware\n")
-
-				// if we're finished, then just return
-				if finished {
-					return
-				}
-			}
-
-			// finally, check if we have a handler and if so, call it - presume it is the last in the chain
-			if route.Handler != nil {
-				route.Handler.ServeHTTP(w, r)
-				return
-			}
-		} else {
+		if matched == false {
 			log.Printf("NO match")
+			continue
 		}
+
+		log.Printf("Match: placeholder vals = %#v\n", vals)
+
+		// save these placeholders into the context (even if empty)
+		ctx := context.WithValue(r.Context(), valsIdKey, vals)
+		r = r.WithContext(ctx)
+
+		// and call the handler
+		log.Printf("== before handler\n")
+		route.Handler.ServeHTTP(w, r)
+		log.Printf("== after handler\n")
+
+		// nothing else to do, so stop multiple matches and multiple response.WriteHeader calls
+		return
 	}
 
-	// if we got through to here, then either nothing matched, or any middlewares did match but still called `next` and
-	// hence there is no final route to deal with the request
+	// If we got through to here, then not route matched, so just call NotFound.
 	http.NotFound(w, r)
 }
 

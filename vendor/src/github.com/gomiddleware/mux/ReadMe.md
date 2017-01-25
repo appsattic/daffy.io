@@ -2,24 +2,29 @@
 
 ## Overview [![GoDoc](https://godoc.org/github.com/gomiddleware/mux?status.svg)](https://godoc.org/github.com/gomiddleware/mux) [![Build Status](https://travis-ci.org/gomiddleware/mux.svg)](https://travis-ci.org/gomiddleware/mux)
 
-Instead of focussing on pure-speed trie based router implementations, mux instead focusses on being both small yet
-powerful. Some of the main features of mux are features that have been left out, such as:
-
-* no router groups
-* no sub-router mouting
-* no ignoring case on paths
-* no automatic slash/non-slash redirection
+gomiddlware/mux aims to provide a neat interface for a mux with middleware included as first-class functions as well as
+endpoint handlers. Middleware and handlers are the two primary ways to compose powerful response mechanisms to any web
+request using your mux. Instead of using a separate library for chaining your middleware or having many intermediate
+variables and chaining them, just use the functions you want wherever you want.
 
 The features that mux boasts are all idomatic Go, such as:
 
-* uses the standard context package
-* middleware for route prefixes
-* middleware chains for all router endpoints
+* using the standard context package
+* middleware defined as `func(http.Handler) http.Handler`
+* handlers defined as `http.Handler` or `http.HandlerFunc`
 * no external dependencies, just plain net/http
-* everything is explicit - and is very much considered a feature
+* everything is explicit - and is very much considered a feature (see below for the things left out)
 
-The combination of just these two things give you a very powerful composition system where you compose middleware on
-prefixes and middleware chains on endpoints.
+Instead of focussing on pure-speed using a trie based router implementations, gomiddleware/mux instead focuses on
+being both small yet powerful. Some of the main features of mux are features that have been left out, such as:
+
+* no sub-routers or mouting other routers
+* no automatic case-folding on paths
+* no automatic slash/non-slash redirection
+* no adding router values into things like r.URL (uses context instead)
+
+The combination of just middleware and handlers these two things give you a very powerful composition system where you
+compose middleware on prefixes and middleware chains on endpoints.
 
 ## Installation
 
@@ -33,14 +38,20 @@ go get github.com/gomiddleware/mux
 // new Mux
 r := mux.New()
 
-// every request gets a 'X-Request-ID' request header
+// log every request
+r.Use("/", logger.New())
+
+// serve a static set of files under "/s/"
+r.All("/s", http.FileServer(http.Dir("./static")))
+
+// every (non-static) request gets a 'X-Request-ID' request header
 r.Use("/", reqid.RandomId)
 
 // serve the /about page
-r.Get("/about", nil, http.HandlerFunc(aboutHandler))
+r.Get("/about", aboutHandler)
 
-// log requests to the homepage
-r.Get("/", []func(http.Handler) http.Handler{requestLogger}, http.HandlerFunc(homeHandler))
+// note each hit on the home page
+r.Get("/", incHomeHits, homeHandler)
 
 // start the server
 http.ListenAndServe(":8080", r)
