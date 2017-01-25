@@ -3,7 +3,6 @@ package mux
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 	"path"
 	"strings"
@@ -130,8 +129,6 @@ func (m *Mux) add(method, path string, things ...interface{}) {
 		return
 	}
 
-	log.Printf("--> add(): %s %s\n", method, path)
-
 	if len(path) == 0 || path[0] != '/' {
 		m.Err = ErrPathMustStartWithSlash
 		return
@@ -147,41 +144,29 @@ func (m *Mux) add(method, path string, things ...interface{}) {
 
 	segments := strings.Split(path, "/")[1:]
 
-	log.Printf("Things = %#v\n", things)
-
-	for i, thing := range things {
-		log.Printf("Loop %d %#v\n", i, thing)
+	for _, thing := range things {
 		switch val := thing.(type) {
 		case func(http.Handler) http.Handler:
-			log.Printf("got func(http.Handler) http.Handler\n")
 			// if we already have a handler, then we should bork
 			if handler != nil {
-				log.Printf("returning ErrMiddlewareAfterHandler")
 				m.Err = ErrMiddlewareAfterHandler
 				return
 			}
 			// all good, so add the middleware
-			log.Printf("adding to middlewares")
 			middlewares = append(middlewares, val)
 		case http.Handler:
-			log.Printf("got http.Handler\n")
 			if handler != nil {
-				log.Printf("already got a handler")
 				m.Err = ErrMultipleHandlers
 				return
 			}
 			// all good, so remember the handler
-			log.Printf("adding a handler")
 			handler = val
 		case func(http.ResponseWriter, *http.Request):
-			log.Printf("got func(http.ResponseWriter, *http.Request)\n")
 			if handler != nil {
-				log.Printf("already got a handler")
 				m.Err = ErrMultipleHandlers
 				return
 			}
 			// all good, so remember the handler
-			log.Printf("adding a HandlerFunc")
 			handler = http.HandlerFunc(val)
 		default:
 			m.Err = ErrUnknownTypeInRoute
@@ -189,13 +174,10 @@ func (m *Mux) add(method, path string, things ...interface{}) {
 		}
 	}
 
-	log.Printf("add(): now adding to the handlers\n")
-
 	// If this is middleware, ie. USE, then there is nothing more to do, but if it is any other method, then we need to
 	// create the final handler from any prefix middleware prior to this, and any middleware AND handler for this route.
 	// If there is no handler for this route, then it is an error.
 	if method == "USE" {
-		log.Printf("mux: this is a USE prefix, nothing more to do here")
 		if handler != nil {
 			// this is not an error, since you might have a static server for a prefix, such as "/s"
 		}
@@ -215,21 +197,17 @@ func (m *Mux) add(method, path string, things ...interface{}) {
 		// generate our wrapped handler, wrapping each in reverse order from the current route, back down through each route
 		wrappedHandler := handler
 		for i := range middlewares {
-			log.Printf("- wrapping handler with middleware from route (m=%d)\n", i)
 			middleware := middlewares[len(middlewares)-1-i]
 			wrappedHandler = middleware(wrappedHandler)
 		}
 
 		// now, go in reverse order through each added middleware and do the same thing
 		for j := range m.prefixes {
-			log.Printf("- checking prefix %d to add middleware\n", j)
 			prefix := m.prefixes[len(m.prefixes)-1-j]
 
 			if isPrefixMatch(segments, prefix.Segments) {
-				log.Printf("- this prefix matches this route\n")
 				// and again, get each middleware in reverse order
 				for i := range prefix.Middlewares {
-					log.Printf("- wrapping handler with middleware from prefix (m=%d)\n", i)
 					middleware := prefix.Middlewares[len(prefix.Middlewares)-1-i]
 					wrappedHandler = middleware(wrappedHandler)
 				}
@@ -249,15 +227,9 @@ func (m *Mux) add(method, path string, things ...interface{}) {
 		// add it to the route handlers
 		m.routes = append(m.routes, route)
 	}
-
-	log.Printf("routes=%#v\n", m.routes)
 }
 
 func isPrefixMatch(segments []string, prefixSegments []string) bool {
-	log.Printf("isPrefixMatch: %v\n", segments)
-
-	log.Printf("Checking against prefixSegments: %#v\n", prefixSegments)
-
 	prefixLength := len(prefixSegments)
 
 	// if segments is just []string{''} (ie, from "/"), then this will match everything
@@ -272,22 +244,18 @@ func isPrefixMatch(segments []string, prefixSegments []string) bool {
 
 	// check each segment is the same (for the length of the prefix)
 	for i, segment := range prefixSegments {
-		log.Printf("isPrefixMatch: checking '%s' against '%s'\n", segments[i], segment)
-
 		// if both segments are empty, then this matches
 		if segment == "" && segments[i] == "" {
-			log.Printf(" - both empty, fine\n")
 			continue
 		}
 
 		// check if segment start with a ":"
 		if segment[0:0] == ":" {
-			log.Printf("Placeholder = %s\n", segment)
 			continue
 		}
 
+		// check if this segment matches what is expected
 		if segments[i] != segment {
-			log.Printf(" - not the same, this prefix doesn't match\n")
 			return false
 		}
 	}
@@ -297,17 +265,13 @@ func isPrefixMatch(segments []string, prefixSegments []string) bool {
 }
 
 func isMatch(method string, segments []string, route *Route) (map[string]string, bool) {
-	log.Printf("isMatch: %s %v\n", method, segments)
-
 	// can't match if the methods are different
 	if route.Method != method {
-		log.Printf("isMatch: different method (got %s, this route is %s)\n", method, route.Method)
 		return nil, false
 	}
 
 	// can't match if the url length is different from the route length
 	if route.Length != len(segments) {
-		log.Printf("isMatch: different path length (got %d, this route is %d long)\n", len(segments), route.Length)
 		return nil, false
 	}
 
@@ -315,18 +279,14 @@ func isMatch(method string, segments []string, route *Route) (map[string]string,
 
 	// check each segment is the same (for the length of the prefix)
 	for i, segment := range route.Segments {
-		log.Printf("isMatch: checking '%s' against '%s'\n", segments[i], segment)
-
 		// if both segments are empty, then this matches
 		if segment == "" && segments[i] == "" {
-			log.Printf(" - both empty, fine\n")
 			continue
 		}
 
 		// check if segment start with a ":"
 		if segment != "" && segment[0:1] == ":" {
-			log.Printf("Placeholder = %s\n", segment)
-			// ToDo: store/return this value somewhere
+			// store this segment into the vals[]
 			vals[segment[1:]] = segments[i]
 			continue
 		}
@@ -342,13 +302,8 @@ func isMatch(method string, segments []string, route *Route) (map[string]string,
 
 // ServeHTTP makes the router implement the http.Handler interface.
 func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("--- NEW REQUEST %s %s ---\n", r.Method, r.URL.Path)
-
 	method := r.Method
 	normPath := path.Clean(r.URL.Path)
-	log.Printf("request: method=%#v\n", method)
-	log.Printf(" - r.URL.Path = %#v\n", r.URL.Path)
-	log.Printf(" - normalised = %#v\n", normPath)
 
 	// if the original path ends in a slash
 	if normPath != "/" {
@@ -357,22 +312,16 @@ func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	log.Printf(" - normalised = %#v\n", normPath)
-
 	// if these paths differ, then redirect to the real one
 	if normPath != r.URL.Path {
 		http.Redirect(w, r, normPath, http.StatusFound)
 		return
 	}
 
-	log.Printf("request: split=%#v\n", strings.Split(normPath, "/"))
+	// split on each segment (and discard the first blank one)
 	segments := strings.Split(normPath, "/")[1:]
 
-	log.Printf("request: segments=%#v\n", segments)
-
-	for i, route := range m.routes {
-		log.Printf("--- Route(%d): %s /%s\n", i, route.Method, strings.Join(route.Segments, "/"))
-
+	for _, route := range m.routes {
 		var vals map[string]string
 		var matched bool
 
@@ -389,20 +338,15 @@ func (m *Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			vals, matched = isMatch(method, segments, &route)
 		}
 		if matched == false {
-			log.Printf("NO match")
 			continue
 		}
-
-		log.Printf("Match: placeholder vals = %#v\n", vals)
 
 		// save these placeholders into the context (even if empty)
 		ctx := context.WithValue(r.Context(), valsIdKey, vals)
 		r = r.WithContext(ctx)
 
 		// and call the handler
-		log.Printf("== before handler\n")
 		route.Handler.ServeHTTP(w, r)
-		log.Printf("== after handler\n")
 
 		// nothing else to do, so stop multiple matches and multiple response.WriteHeader calls
 		return
