@@ -29,7 +29,7 @@ For [AppsAttic](https://appsattic.com), [@AppsAttic](https://twitter.com/AppsAtt
 
 ## License ##
 
-[MIT](https://appsattic.mit-license.org/2017/).
+[MIT](https://publish.li/mit-license-CPdxXSZb).
 
 ## Credits ##
 
