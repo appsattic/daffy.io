@@ -1,11 +1,5 @@
 package rod
 
-// Rod is a simple way to put/get values to/from a BoltDB (https://github.com/boltdb/bolt) store. It can deal with
-// deep-bucket hierarchies easily and is therefore a rod straight to the value you want.
-//
-// Whilst this package won't solve all of your problems or use-cases, it does make a few things simple and is used
-// successfully in https://publish.li/ and https://weekproject.com/ and various other applications.
-
 import (
 	"encoding/json"
 	"errors"
@@ -25,6 +19,29 @@ var (
 	// ErrKeyNotProvided is returned if key was not specified, ie. it is empty.
 	ErrKeyNotProvided = errors.New("key must be specified")
 )
+
+// Del will find your bucket location and delete the key specified. It doesn't matter what is in the key's value, since
+// it is ignored during this operation. If the bucket doesn't exist, no error is returned since technically you've
+// already got what you asked for. Similarly, if the key doesn't exist, no error is returned for the same reason.
+func Del(tx *bolt.Tx, location, key string) error {
+	if location == "" {
+		return ErrLocationMustHaveAtLeastOneBucket
+	}
+	if key == "" {
+		return ErrKeyNotProvided
+	}
+
+	b, err := GetBucket(tx, location)
+	if err != nil {
+		return err
+	}
+	if b == nil {
+		return nil
+	}
+
+	// now delete the key
+	return b.Delete([]byte(key))
+}
 
 // Put will find your bucket location and put your value into the key specified. The location is specified as a
 // hierarchy of bucket names such as "users", "users.chilts", or "users.chilts.posts" and will be split on the period
@@ -80,12 +97,12 @@ func Put(tx *bolt.Tx, location, key string, value []byte) error {
 	return b.Put([]byte(key), value)
 }
 
-// PutString() converts the string to []byte and calls Put(). Everything that applies there applies here too.
+// PutString converts the string to []byte and calls Put. Everything that applies there applies here too.
 func PutString(tx *bolt.Tx, location, key, value string) error {
 	return Put(tx, location, key, []byte(value))
 }
 
-// PutJson() calls json.Marshal() to serialise the value into []byte and calls rod.Put() with the result.
+// PutJson calls json.Marshal() to serialise the value into []byte and calls rod.Put with the result.
 func PutJson(tx *bolt.Tx, location, key string, v interface{}) error {
 	// now put this value in this key
 	value, err := json.Marshal(v)
@@ -95,7 +112,7 @@ func PutJson(tx *bolt.Tx, location, key string, v interface{}) error {
 	return Put(tx, location, key, value)
 }
 
-// Get() will fetch the raw bytes from the BoltDB. If any bucket doesn't exist it will return nil. If the key doesn't
+// Get will fetch the raw bytes from the BoltDB. If any bucket doesn't exist it will return nil. If the key doesn't
 // exist it will also return nil.
 //
 // Error returned from this function are:
@@ -118,8 +135,8 @@ func Get(tx *bolt.Tx, location, key string) ([]byte, error) {
 	return b.Get([]byte(key)), nil
 }
 
-// GetString() calls rod.Get() and converts the []byte to a string before returning it to you. Everything that applies
-// there applies here too.
+// GetString calls Get and converts the []byte to a string before returning it to you. Everything that applies there
+// applies here too.
 func GetString(tx *bolt.Tx, location, key string) (string, error) {
 	raw, err := Get(tx, location, key)
 	if err != nil {
@@ -128,8 +145,8 @@ func GetString(tx *bolt.Tx, location, key string) (string, error) {
 	return string(raw), nil
 }
 
-// GetJson() calls rod.Get() and then json.Unmarshal() with the result to deserialise the value into interface{}. If
-// any bucket doesn't exist we just return nil with nothing placed into v. The same if the key doesn't exist.
+// GetJson calls Get and then json.Unmarshal() with the result to deserialise the value into interface{}. If any bucket
+// doesn't exist we just return nil with nothing placed into v. The same if the key doesn't exist.
 func GetJson(tx *bolt.Tx, location, key string, v interface{}) error {
 	// get this key
 	raw, err := Get(tx, location, key)
@@ -145,7 +162,8 @@ func GetJson(tx *bolt.Tx, location, key string, v interface{}) error {
 	return json.Unmarshal(raw, &v)
 }
 
-// GetBucket returns this nested bucket from the store.
+// GetBucket returns this nested bucket from the store. If any bucket along the way does not exist, then no bucket is
+// returned (nil) but not error is returned either.
 func GetBucket(tx *bolt.Tx, location string) (*bolt.Bucket, error) {
 	if location == "" {
 		return nil, ErrLocationMustHaveAtLeastOneBucket

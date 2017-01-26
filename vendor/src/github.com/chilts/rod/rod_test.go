@@ -138,4 +138,31 @@ func TestAll(t *testing.T) {
 		}
 	})
 
+	t.Run("Delete", func(t *testing.T) {
+		location := "delete"
+		key := "key"
+		val := "val"
+
+		err := db.Update(func(tx *bolt.Tx) error {
+			// put a new value and make sure it works
+			errPut := PutString(tx, location, key, val)
+			check(errPut)
+
+			// now delete it again
+			errDel1 := Del(tx, location, key)
+			check(errDel1)
+
+			// delete it again (since it now doesn't exist)
+			errDel2 := Del(tx, location, key)
+			check(errDel2)
+
+			// delete a key from a location that doesn't exist
+			errDel3 := Del(tx, "doesnt-exist", key)
+			check(errDel3)
+
+			return nil
+		})
+
+		check(err)
+	})
 }
