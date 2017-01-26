@@ -17,6 +17,8 @@ import (
 
 var (
 	ErrSocialAccountAlreadyExists = errors.New("This social account already exists and is owned by another user.")
+
+	ErrUsernameAlreadyExists = errors.New("Username already exists")
 )
 
 var userBucket = "user"
@@ -232,13 +234,41 @@ func (b *BoltStore) UpdateUser(currentUser types.User, updateUser types.UpdateUs
 			return errGetUser
 		}
 
+		// check to see if the username has changed, and if so, remove the old index entry and add a new one
+		if updateUser.Name != user.Name {
+			fmt.Printf("User is changing their username from %s, to %s\n", user.Name, updateUser.Name)
+
+			// check that this username doesn't already exist
+			id, errGetIndex := rod.GetString(tx, indexUserNameUniqueIndex, updateUser.Name)
+			if errGetIndex != nil {
+				return errGetIndex
+			}
+			if id != "" {
+				return ErrUsernameAlreadyExists
+			}
+
+			// remove the old index value
+			errDel := rod.Del(tx, indexUserNameUniqueIndex, user.Name)
+			if errDel != nil {
+				return errDel
+			}
+
+			// put the new index value
+			errPutIndex := rod.PutString(tx, indexUserNameUniqueIndex, updateUser.Name, currentUser.Id)
+			if errPutIndex != nil {
+				return errPutIndex
+			}
+		} else {
+			fmt.Printf("User is NOT changing their username.\n")
+		}
+
 		// update
 		user.Name = updateUser.Name
 		user.Title = updateUser.Title
 		user.Email = updateUser.Email
 		user.Updated = now
 
-		// re-save
+		// re-save user
 		errPutUser := rod.PutJson(tx, userBucket, user.Id, user)
 		fmt.Printf("errPutUser = %#v\n", errPutUser)
 		if errPutUser != nil {
