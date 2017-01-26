@@ -13,6 +13,7 @@ A simple skeleton webapp which does a number of things for you.
 * opens and uses a BoltDB key/value datastore
 * stores all social IDs in a `social` table
 * stores all users in a `user` table
+* stores the mapping from social ID to user separately
 * allows user to change their username
 * allows user to see which social networks they have logged in with
 
