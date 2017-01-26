@@ -12,6 +12,7 @@ import (
 	valid "github.com/asaskevich/govalidator"
 	"github.com/gomiddleware/logger"
 	"github.com/gomiddleware/mux"
+	"github.com/gomiddleware/slash"
 	"github.com/gorilla/schema"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
@@ -240,6 +241,7 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
+	m.Get("/my", slash.Add)
 	m.Get("/my/", func(w http.ResponseWriter, r *http.Request) {
 		// check the user is logged in
 		session, _ := sessionStore.Get(r, sessionName)
