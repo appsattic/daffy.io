@@ -180,9 +180,11 @@ func main() {
 	})
 
 	// begin auth
+	m.Get("/auth/:provider/", slash.Remove)
 	m.Get("/auth/:provider", gothic.BeginAuthHandler)
 
 	// logout
+	m.Get("/logout/", slash.Remove)
 	m.Get("/logout", func(w http.ResponseWriter, r *http.Request) {
 		session, _ := sessionStore.Get(r, sessionName)
 
@@ -194,6 +196,7 @@ func main() {
 		http.Redirect(w, r, "/", http.StatusFound)
 	})
 
+	m.Get("/settings/profile/", slash.Remove)
 	m.Post("/settings/profile", func(w http.ResponseWriter, r *http.Request) {
 		// firstly, check the user is logged in
 		session, _ := sessionStore.Get(r, sessionName)
@@ -271,6 +274,7 @@ func main() {
 		render(w, tmpl, "my-index.html", data)
 	})
 
+	m.Get("/settings", slash.Add)
 	m.Get("/settings/", func(w http.ResponseWriter, r *http.Request) {
 		session, _ := sessionStore.Get(r, sessionName)
 		user := getUserFromSession(session)
