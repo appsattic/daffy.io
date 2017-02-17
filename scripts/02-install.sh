@@ -64,7 +64,6 @@ echo
 
 # copy the caddy conf
 echo "Copying Caddy config config ..."
-sudo cp etc/caddy/vhosts/io.daffy.conf /etc/caddy/vhosts/
 m4 \
     -D __DAFFY_PORT__=$DAFFY_PORT \
     -D __DAFFY_NAKED_DOMAIN__=$DAFFY_NAKED_DOMAIN \
