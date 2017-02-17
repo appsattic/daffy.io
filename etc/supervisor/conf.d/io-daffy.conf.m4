@@ -1,0 +1,21 @@
+[program:io-daffy]
+directory = /home/chilts/src/appsattic-daffy.io
+command = /home/chilts/src/appsattic-daffy.io/bin/server
+user = chilts
+autostart = true
+autorestart = true
+stdout_logfile = /var/log/chilts/io-daffy-stdout.log
+stderr_logfile = /var/log/chilts/io-daffy-stderr.log
+environment =
+    DAFFY_PORT="__DAFFY_PORT__",
+    DAFFY_BASE_URL="__DAFFY_BASE_URL__",
+    DAFFY_TWITTER_CONSUMER_KEY="__DAFFY_TWITTER_CONSUMER_KEY__",
+    DAFFY_TWITTER_CONSUMER_SECRET="__DAFFY_TWITTER_CONSUMER_SECRET__",
+    DAFFY_GPLUS_CLIENT_ID="__DAFFY_GPLUS_CLIENT_ID__",
+    DAFFY_GPLUS_CLIENT_SECRET="__DAFFY_GPLUS_CLIENT_SECRET__",
+    DAFFY_GITHUB_CLIENT_ID="__DAFFY_GITHUB_CLIENT_ID__",
+    DAFFY_GITHUB_CLIENT_SECRET="__DAFFY_GITHUB_CLIENT_SECRET__",
+    DAFFY_SESSION_AUTH_KEY_V2="__DAFFY_SESSION_AUTH_KEY_V2__",
+    DAFFY_SESSION_ENC_KEY_V2="__DAFFY_SESSION_ENC_KEY_V2__",
+    DAFFY_SESSION_AUTH_KEY_V1="__DAFFY_SESSION_AUTH_KEY_V1__",
+    DAFFY_SESSION_ENC_KEY_V1=__DAFFY_SESSION_ENC_KEY_V1__""

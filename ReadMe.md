@@ -21,6 +21,28 @@ This project is not designed to be deployed but instead to be cloned and changed
 
 This is a [gb](https://getgb.io/) project, but probably can be converted to the vanilla go toolchain easily enough.
 
+## Renaming things ##
+
+Once you have a copy of the project locally, you should rename everything that is Daffy related to your own name. This
+includes:
+
+* daffy.io -> example.com
+* io-daffy -> com-example
+* daffy -> example (or at least the 'project name')
+* Daffy -> Example
+* DAFFY -> EXAMPLE
+
+This is true for both filenames and for the content within any file. The following commands may help you:
+
+* `find . -name '*daffy.io*'`
+* `find . -name '*daffy-io*'`
+* `find . -name '*io-daffy*'`
+* `find . -name '*daffy*'`
+* `ack daffy.io` # Note: . is a wildcard so will pick up both dot and dash.
+* `ack io.daffy` # Note: . is a wildcard so will pick up both dot and dash.
+* `ack Daffy`
+* `ack daffy`
+
 ## Author ##
 
 [Andrew Chilton](https://chilts.org), [@andychilton](https://twitter.com/andychilton).

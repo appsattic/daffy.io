@@ -1,3 +1,5 @@
+set-env-*.sh
+
 /pkg/
 /bin/
 
