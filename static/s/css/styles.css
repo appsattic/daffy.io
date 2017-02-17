@@ -1,0 +1,19 @@
+html, body {
+  font-family: 'Roboto', 'Helvetica', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.daffy-content {
+  padding: 8px;
+  padding-top: 48px;
+}
+
+.daffy-section--center {
+}
+
+.daffy section {
+  max-width: 960px;
+  position: relative;
+  margin-bottom: 48px;
+}
