@@ -13,6 +13,7 @@ import (
 	"github.com/gomiddleware/logger"
 	"github.com/gomiddleware/mux"
 	"github.com/gomiddleware/slash"
+	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/github"
@@ -21,6 +22,19 @@ import (
 
 	"internal/store"
 	"internal/types"
+)
+
+var sessionName = "session"
+
+// To create newer keys, setup two V3 environment variables and drop the V1 ones (or keep them for a while). Eventually
+// you can drop them. Keep incrementing each time you add new ones. See : https://godoc.org/github.com/gorilla/sessions
+var sessionStore = sessions.NewCookieStore(
+	// New Keys
+	[]byte(os.Getenv("DAFFY_SESSION_AUTH_KEY_V2")),
+	[]byte(os.Getenv("DAFFY_SESSION_ENC_KEY_V2")),
+	// Old Keys
+	[]byte(os.Getenv("DAFFY_SESSION_AUTH_KEY_V1")),
+	[]byte(os.Getenv("DAFFY_SESSION_ENC_KEY_V1")),
 )
 
 func check(err error) {
@@ -41,6 +55,9 @@ func render(w http.ResponseWriter, tmpl *template.Template, tmplName string, dat
 }
 
 func init() {
+	// tell gothic where our session store is
+	gothic.Store = sessionStore
+
 	// Register the user with `gob` so we can serialise it.
 	gob.Register(&types.User{})
 
@@ -120,6 +137,7 @@ func main() {
 
 	// user routes
 	m.Get("/my", slash.Add)
+	m.Use("/my", checkUser)
 	m.Get("/my/", myHandler(boltStore, tmpl))
 	m.Get("/settings", slash.Add)
 	m.Get("/settings/", settingsHandler(boltStore, tmpl))

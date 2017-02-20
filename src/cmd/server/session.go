@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/gorilla/sessions"
-
 	"internal/types"
+	"net/http"
 )
 
-func getUserFromSession(session *sessions.Session) *types.User {
+func getUserFromSession(r *http.Request) *types.User {
+	session, _ := sessionStore.Get(r, sessionName)
 	user, ok := session.Values["user"].(*types.User)
 	if !ok {
 		return nil

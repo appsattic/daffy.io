@@ -5,7 +5,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gomiddleware/mux"
 	"github.com/gorilla/schema"
@@ -16,31 +15,12 @@ import (
 	"internal/types"
 )
 
-var sessionName = "session"
-
 // create a decoder than can be used for all forms
 var decoder = schema.NewDecoder()
 
-// To create newer keys, setup two V3 environment variables and drop the V1 ones (or keep them for a while). Eventually
-// you can drop them. Keep incrementing each time you add new ones. See : https://godoc.org/github.com/gorilla/sessions
-var sessionStore = sessions.NewCookieStore(
-	// New Keys
-	[]byte(os.Getenv("DAFFY_SESSION_AUTH_KEY_V2")),
-	[]byte(os.Getenv("DAFFY_SESSION_ENC_KEY_V2")),
-	// Old Keys
-	[]byte(os.Getenv("DAFFY_SESSION_AUTH_KEY_V1")),
-	[]byte(os.Getenv("DAFFY_SESSION_ENC_KEY_V1")),
-)
-
-func init() {
-	// tell gothic where our session store is
-	gothic.Store = sessionStore
-}
-
 func homeHandler(tmpl *template.Template) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		session, _ := sessionStore.Get(r, sessionName)
-		user := getUserFromSession(session)
+		user := getUserFromSession(r)
 
 		data := struct {
 			Title string
@@ -69,7 +49,7 @@ func settingsProfileHandler(boltStore *store.BoltStore) func(w http.ResponseWrit
 	return func(w http.ResponseWriter, r *http.Request) {
 		// firstly, check the user is logged in
 		session, _ := sessionStore.Get(r, sessionName)
-		user := getUserFromSession(session)
+		user := getUserFromSession(r)
 		if user == nil {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
@@ -117,8 +97,7 @@ func settingsProfileHandler(boltStore *store.BoltStore) func(w http.ResponseWrit
 func myHandler(boltStore *store.BoltStore, tmpl *template.Template) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// check the user is logged in
-		session, _ := sessionStore.Get(r, sessionName)
-		user := getUserFromSession(session)
+		user := getUserFromSession(r)
 		if user == nil {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
@@ -147,8 +126,7 @@ func myHandler(boltStore *store.BoltStore, tmpl *template.Template) func(w http.
 
 func settingsHandler(boltStore *store.BoltStore, tmpl *template.Template) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		session, _ := sessionStore.Get(r, sessionName)
-		user := getUserFromSession(session)
+		user := getUserFromSession(r)
 		if user == nil {
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
@@ -178,7 +156,7 @@ func settingsHandler(boltStore *store.BoltStore, tmpl *template.Template) func(w
 func authProviderCallbackHandler(boltStore *store.BoltStore) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session, _ := sessionStore.Get(r, sessionName)
-		currentUser := getUserFromSession(session)
+		currentUser := getUserFromSession(r)
 		userId := ""
 		if currentUser != nil {
 			userId = currentUser.Id
