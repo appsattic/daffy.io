@@ -20,6 +20,12 @@
 			"branch": "master"
 		},
 		{
+			"importpath": "github.com/chilts/logfn",
+			"repository": "https://github.com/chilts/logfn",
+			"revision": "3b1585fc2a2a607449045c9e637f40f0ef172c04",
+			"branch": "master"
+		},
+		{
 			"importpath": "github.com/chilts/rod",
 			"repository": "https://github.com/chilts/rod",
 			"revision": "11cb9a5dc87fb04f4da7e1e23d60370f9d3eb794",
