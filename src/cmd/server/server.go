@@ -139,7 +139,9 @@ func main() {
 	m.Get("/my", slash.Add)
 	m.Use("/my", checkUser)
 	m.Get("/my/", myHandler(boltStore, tmpl))
+
 	m.Get("/settings", slash.Add)
+	m.Use("/settings", checkUser)
 	m.Get("/settings/", settingsHandler(boltStore, tmpl))
 	m.Get("/settings/profile/", slash.Remove)
 	m.Post("/settings/profile", settingsProfileHandler(boltStore))

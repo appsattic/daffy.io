@@ -20,6 +20,8 @@ var decoder = schema.NewDecoder()
 
 func homeHandler(tmpl *template.Template) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer exit(enter("main.homeHandler"))
+
 		user := getUserFromSession(r)
 
 		data := struct {
@@ -35,6 +37,8 @@ func homeHandler(tmpl *template.Template) func(w http.ResponseWriter, r *http.Re
 }
 
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	defer exit(enter("main.logoutHandler"))
+
 	session, _ := sessionStore.Get(r, sessionName)
 
 	// scrub user
@@ -47,13 +51,9 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 
 func settingsProfileHandler(boltStore *store.BoltStore) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// firstly, check the user is logged in
-		session, _ := sessionStore.Get(r, sessionName)
+		defer exit(enter("main.settingsProfileHandler"))
+
 		user := getUserFromSession(r)
-		if user == nil {
-			http.Redirect(w, r, "/", http.StatusFound)
-			return
-		}
 
 		// parse the incoming form
 		err := r.ParseForm()
@@ -87,6 +87,7 @@ func settingsProfileHandler(boltStore *store.BoltStore) func(w http.ResponseWrit
 		fmt.Printf("* NEW * user = %v\n", newUser)
 
 		// save this new user
+		session, _ := sessionStore.Get(r, sessionName)
 		session.Values["user"] = &newUser
 		session.Save(r, w)
 
@@ -96,12 +97,9 @@ func settingsProfileHandler(boltStore *store.BoltStore) func(w http.ResponseWrit
 
 func myHandler(boltStore *store.BoltStore, tmpl *template.Template) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// check the user is logged in
+		defer exit(enter("main.myHandler"))
+
 		user := getUserFromSession(r)
-		if user == nil {
-			http.Redirect(w, r, "/", http.StatusFound)
-			return
-		}
 
 		// get all the social entities
 		socials, err := boltStore.SelSocials(user.SocialIds)
@@ -126,11 +124,9 @@ func myHandler(boltStore *store.BoltStore, tmpl *template.Template) func(w http.
 
 func settingsHandler(boltStore *store.BoltStore, tmpl *template.Template) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer exit(enter("main.settingsHandler"))
+
 		user := getUserFromSession(r)
-		if user == nil {
-			http.Redirect(w, r, "/", http.StatusFound)
-			return
-		}
 
 		// get all the social entities
 		socials, err := boltStore.SelSocials(user.SocialIds)
@@ -155,6 +151,8 @@ func settingsHandler(boltStore *store.BoltStore, tmpl *template.Template) func(w
 
 func authProviderCallbackHandler(boltStore *store.BoltStore) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		defer exit(enter("main.authProviderCallbackHandler"))
+
 		session, _ := sessionStore.Get(r, sessionName)
 		currentUser := getUserFromSession(r)
 		userId := ""
