@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/gob"
 	"fmt"
 	"html/template"
@@ -20,6 +19,7 @@ import (
 	"github.com/markbates/goth/providers/gplus"
 	"github.com/markbates/goth/providers/twitter"
 
+	"internal/handlers"
 	"internal/store"
 	"internal/types"
 )
@@ -41,17 +41,6 @@ func check(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func render(w http.ResponseWriter, tmpl *template.Template, tmplName string, data interface{}) {
-	buf := &bytes.Buffer{}
-	err := tmpl.ExecuteTemplate(buf, tmplName, data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	buf.WriteTo(w)
 }
 
 func init() {
@@ -129,27 +118,27 @@ func main() {
 	m.Use("/", logger.New())
 
 	// home
-	m.Get("/", homeHandler(tmpl))
+	m.Get("/", handlers.HomeHandler(sessionStore, sessionName, tmpl))
 
 	// session
 	m.Get("/logout/", slash.Remove)
-	m.Get("/logout", logoutHandler)
+	m.Get("/logout", handlers.LogoutHandler(sessionStore, sessionName))
 
 	// user routes
 	m.Get("/my", slash.Add)
 	m.Use("/my", checkUser)
-	m.Get("/my/", myHandler(boltStore, tmpl))
+	m.Get("/my/", handlers.MyHandler(sessionStore, sessionName, boltStore, tmpl))
 
 	m.Get("/settings", slash.Add)
 	m.Use("/settings", checkUser)
-	m.Get("/settings/", settingsHandler(boltStore, tmpl))
+	m.Get("/settings/", handlers.SettingsHandler(sessionStore, sessionName, boltStore, tmpl))
 	m.Get("/settings/profile/", slash.Remove)
-	m.Post("/settings/profile", settingsProfileHandler(boltStore))
+	m.Post("/settings/profile", handlers.SettingsProfileHandler(sessionStore, sessionName, boltStore))
 
 	// auth
 	m.Get("/auth/:provider/", slash.Remove)
 	m.Get("/auth/:provider", gothic.BeginAuthHandler)
-	m.Get("/auth/:provider/callback", authProviderCallbackHandler(boltStore))
+	m.Get("/auth/:provider/callback", handlers.AuthProviderCallbackHandler(sessionStore, sessionName, boltStore))
 
 	// finally, check all routing was added correctly
 	check(m.Err)
