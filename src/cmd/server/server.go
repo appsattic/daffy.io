@@ -20,6 +20,7 @@ import (
 	"github.com/markbates/goth/providers/twitter"
 
 	"internal/handlers"
+	"internal/middleware"
 	"internal/store"
 	"internal/types"
 )
@@ -105,6 +106,9 @@ func main() {
 	// support, however, you could also just hard-code them in the templates if you're only using one or two.
 	providers := goth.GetProviders()
 	fmt.Printf("providers=%#v\n", providers)
+
+	// set up some middleware in advance
+	checkUser := middleware.CheckUser(sessionStore, sessionName)
 
 	// router
 	m := mux.New()
