@@ -17,24 +17,6 @@ import (
 // create a decoder than can be used for all forms
 var decoder = schema.NewDecoder()
 
-func HomeHandler(sessionStore sessions.Store, sessionName string, tmpl *template.Template) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		defer logfn.Exit(logfn.Enter("homeHandler"))
-
-		user := getUserFromSession(r, sessionStore, sessionName)
-
-		data := struct {
-			Title string
-			User  *types.User
-		}{
-			"Daffy",
-			user,
-		}
-
-		render(w, tmpl, "index.html", data)
-	}
-}
-
 func SettingsProfileHandler(sessionStore sessions.Store, sessionName string, boltStore *store.BoltStore) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer logfn.Exit(logfn.Enter("settingsProfileHandler"))
