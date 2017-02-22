@@ -31,9 +31,15 @@
             <a class="mdl-navigation__link" href="/my/">{{ .Name }}</a>
             <a class="mdl-navigation__link" href="/logout">Log Out</a>
     {{ else }}
+      {{ with .Providers.twitter }}
             <a class="mdl-navigation__link" href="/auth/twitter">Log in with Twitter</a>
+      {{ end }}
+      {{ with .Providers.github }}
             <a class="mdl-navigation__link" href="/auth/github">Log in with GitHub</a>
+      {{ end }}
+      {{ with .Providers.gplus }}
             <a class="mdl-navigation__link" href="/auth/gplus">Log in with Google</a>
+      {{ end }}
     {{ end }}
           </nav>
         </div>

@@ -122,7 +122,7 @@ func main() {
 	m.Use("/", logger.New())
 
 	// home
-	m.Get("/", handlers.HomeHandler(sessionStore, sessionName, tmpl))
+	m.Get("/", handlers.HomeHandler(sessionStore, sessionName, providers, tmpl))
 
 	// session
 	m.Get("/logout/", slash.Remove)
