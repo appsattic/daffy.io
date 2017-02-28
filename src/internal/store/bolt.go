@@ -280,3 +280,7 @@ func (b *BoltStore) UpdateUser(currentUser types.User, updateUser types.UpdateUs
 
 	return user, err
 }
+
+func (b *BoltStore) GetDB() *bolt.DB {
+	return b.db
+}

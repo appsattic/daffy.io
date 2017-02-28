@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	valid "github.com/asaskevich/govalidator"
 	"github.com/gomiddleware/logger"
@@ -62,6 +63,7 @@ func main() {
 	if port == "" {
 		log.Fatal("Specify a port to listen on in the environment variable 'DAFFY_PORT'")
 	}
+	dbDumpDir := os.Getenv("DAFFY_DB_DUMP_DIR")
 
 	// load up all templates
 	tmpl, err := template.New("").ParseGlob("./templates/*.html")
@@ -74,6 +76,27 @@ func main() {
 	errOpen := boltStore.Open()
 	check(errOpen)
 	defer boltStore.Close()
+
+	// dump this BoltDB to disk every x mins
+	if dbDumpDir == "" {
+		log.Println("No DB_DUMP_DIR specified - not performing datastore dumps")
+	} else {
+		ticker := time.NewTicker(1 * time.Hour)
+		quit := make(chan struct{})
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					// do stuff
+					log.Println("Dumping the DB now")
+					dump(dbDumpDir, boltStore.GetDB())
+				case <-quit:
+					ticker.Stop()
+					return
+				}
+			}
+		}()
+	}
 
 	// Example : https://raw.githubusercontent.com/markbates/goth/master/examples/main.go
 
