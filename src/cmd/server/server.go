@@ -151,6 +151,11 @@ func main() {
 	m.Get("/logout/", slash.Remove)
 	m.Get("/logout", handlers.LogoutHandler(sessionStore, sessionName))
 
+	// public user pages
+	m.Get("/u", slash.Add)
+	m.Get("/u/", redirect("/"))
+	m.Get("/u/:username", handlers.ProfileHandler(sessionStore, sessionName, providers, boltStore, tmpl))
+
 	// user routes
 	m.Get("/my", slash.Add)
 	m.Use("/my", checkUser)

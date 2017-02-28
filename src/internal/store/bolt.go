@@ -19,6 +19,7 @@ var (
 	ErrSocialAccountAlreadyExists = errors.New("This social account already exists and is owned by another user.")
 
 	ErrUsernameAlreadyExists = errors.New("Username already exists")
+	ErrUsernameUnknown       = errors.New("Unknown username")
 )
 
 var userBucket = "user"
@@ -198,6 +199,32 @@ func (b *BoltStore) SelSocials(socialIds []string) ([]types.Social, error) {
 	})
 
 	return socials, err
+}
+
+func (b *BoltStore) GetUserPublic(username string) (*types.User, error) {
+	var user *types.User
+
+	err := b.db.View(func(tx *bolt.Tx) error {
+		// firstly, read the index
+		userId, errGetIndex := rod.GetString(tx, indexUserNameUniqueIndex, username)
+		if errGetIndex != nil {
+			return errGetIndex
+		}
+		if userId == "" {
+			return nil
+		}
+
+		// now get this user
+		var newUser types.User
+		errGetJson := rod.GetJson(tx, userBucket, userId, &newUser)
+		if errGetJson != nil {
+			return errGetJson
+		}
+		user = &newUser
+		return nil
+	})
+
+	return user, err
 }
 
 func (b *BoltStore) UpdateUser(currentUser types.User, updateUser types.UpdateUser) (types.User, error) {

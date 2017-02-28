@@ -7,9 +7,12 @@
       <div class="mdl-card mdl-cell mdl-cell--12-col">
         <div class="mdl-card__supporting-text">
 
-          <h4>My Daffy</h4>
+          <h4>Profile for {{ .Profile.Name }}</h4>
 
-          <p>... some private user data here ...</p>
+          <ul>
+            <li>{{ .Profile.Name }}</li>
+            <li>{{ .Profile.Title }}</li>
+          </ul>
 
           <p>(Ends)</p>
 
