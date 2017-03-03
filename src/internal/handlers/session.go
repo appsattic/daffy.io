@@ -6,16 +6,12 @@ import (
 	"github.com/chilts/logfn"
 	"github.com/gorilla/sessions"
 
+	"internal/sess"
 	"internal/types"
 )
 
 func getUserFromSession(r *http.Request, sessionStore sessions.Store, sessionName string) *types.User {
-	session, _ := sessionStore.Get(r, sessionName)
-	user, ok := session.Values["user"].(*types.User)
-	if !ok {
-		return nil
-	}
-	return user
+	return sess.GetUserFromSession(r, sessionStore, sessionName)
 }
 
 func LogoutHandler(sessionStore sessions.Store, sessionName string) func(w http.ResponseWriter, r *http.Request) {
