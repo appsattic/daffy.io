@@ -7,15 +7,11 @@ import (
 	"net/http"
 
 	"github.com/chilts/logfn"
-	"github.com/gorilla/schema"
 	"github.com/gorilla/sessions"
 
 	"internal/store"
 	"internal/types"
 )
-
-// create a decoder than can be used for all forms
-var decoder = schema.NewDecoder()
 
 func SettingsProfileHandler(sessionStore sessions.Store, sessionName string, boltStore *store.BoltStore) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
