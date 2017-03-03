@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"fmt"
 	"log"
 	"os"
@@ -11,7 +12,7 @@ import (
 )
 
 func dump(dir string, db *bolt.DB) error {
-	filename := path.Join(dir, time.Now().Format("20060102-150405")+".db")
+	filename := path.Join(dir, time.Now().Format("20060102-150405")+".db.gz")
 	fmt.Printf("filename=%s\n", filename)
 
 	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0700)
@@ -20,8 +21,12 @@ func dump(dir string, db *bolt.DB) error {
 	}
 	defer f.Close()
 
+	// gzip the output
+	zw := gzip.NewWriter(f)
+	defer zw.Close()
+
 	err = db.View(func(tx *bolt.Tx) error {
-		n, err := tx.WriteTo(f)
+		n, err := tx.WriteTo(zw)
 		log.Printf("DB Dump written %d bytes\n", n)
 		return err
 	})
