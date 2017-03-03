@@ -11,6 +11,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/chilts/rod"
 	uuid "github.com/hashicorp/go-uuid"
+	"github.com/markbates/goth"
 
 	"internal/types"
 )
@@ -52,7 +53,11 @@ func (b *BoltStore) Close() error {
 	return b.db.Close()
 }
 
-func (b *BoltStore) LogIn(userId, provider, id, nickName, title, email string) (*types.User, error) {
+func (b *BoltStore) LogInGoth(userId, provider string, authUser goth.User) (*types.User, error) {
+	return b.LogIn(userId, provider, authUser.UserID, authUser.NickName, authUser.Name, authUser.Email, authUser.AccessToken, authUser.AccessTokenSecret)
+}
+
+func (b *BoltStore) LogIn(userId, provider, id, nickName, title, email, accessToken, accessTokenSecret string) (*types.User, error) {
 	var user types.User
 	now := time.Now().UTC()
 
@@ -111,11 +116,15 @@ func (b *BoltStore) LogIn(userId, provider, id, nickName, title, email string) (
 
 		// create the Social
 		social = types.Social{
-			Id:       socialId,
-			UserId:   userId,
-			NickName: nickName,
-			Title:    title,
-			Email:    email,
+			Id:                socialId,
+			UserId:            userId,
+			Provider:          provider,
+			NickName:          nickName,
+			Title:             title,
+			Email:             email,
+			AccessToken:       accessToken,
+			AccessTokenSecret: accessTokenSecret,
+			// RefreshToken: "", //  always empty
 			Inserted: now,
 			Updated:  now,
 		}

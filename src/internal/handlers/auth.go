@@ -38,7 +38,7 @@ func AuthProviderCallbackHandler(sessionStore sessions.Store, sessionName string
 		fmt.Printf("authUser=%#v\n", authUser)
 
 		// check to see if this socialId already exists
-		user, err := api.LogIn(userId, provider, authUser.UserID, authUser.NickName, authUser.Name, authUser.Email)
+		user, err := api.LogInGoth(userId, provider, authUser)
 		if err != nil {
 			log.Print(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
