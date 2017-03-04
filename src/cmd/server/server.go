@@ -161,6 +161,11 @@ func main() {
 	m.Use("/my", checkUser)
 	m.Get("/my/", handlers.MyHandler(sessionStore, sessionName, boltStore, tmpl))
 
+	// tweet from a social account
+	m.Get("/my/tweet", middleware.LoadSocials(sessionStore, sessionName, boltStore), handlers.MyTweetHandlerGet(sessionStore, sessionName, boltStore, tmpl))
+	m.Post("/my/tweet", middleware.LoadSocials(sessionStore, sessionName, boltStore), handlers.MyTweetHandlerPost(sessionStore, sessionName, boltStore, tmpl))
+
+	// settings
 	m.Get("/settings", slash.Add)
 	m.Use("/settings", checkUser)
 	m.Get("/settings/", handlers.SettingsHandler(sessionStore, sessionName, boltStore, tmpl))

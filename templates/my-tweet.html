@@ -1,0 +1,37 @@
+{{ template "header.html" . }}
+
+  <div class="daffy-content">
+
+    <!-- section -->
+    <section class="daffy-section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+      <div class="mdl-card mdl-cell mdl-cell--12-col">
+        <div class="mdl-card__supporting-text">
+
+          <h4>Tweet from an Account</h4>
+
+          <form method="post" action="/my/tweet">
+          <h5>Choose an Account</h5>
+          {{ range $i, $social := .Socials }}
+          <label for="social_id_{{ $i }}">
+            <input id="social_id_{{ $i }}" type="radio" name="SocialId" value="{{ $social.Id }}" />
+            {{ $social.Provider }} : {{ $social.NickName }}
+          </label>
+          <br />
+          {{ end }}
+
+          <h5>Your Tweet</h5>
+          <input type="text" name="Tweet" value="Just setting up my Twttr." />
+          <br />
+          <input type="submit" name="submit" value="Tweet!" />
+          </form>
+
+          <p>(Ends)</p>
+
+        </div>
+      </div>
+    </section>
+    <!-- /section -->
+
+  </div>
+
+{{ template "footer.html" . }}
