@@ -8,6 +8,7 @@ stdout_logfile = /var/log/chilts/io-daffy-stdout.log
 stderr_logfile = /var/log/chilts/io-daffy-stderr.log
 environment =
     DAFFY_PORT="__DAFFY_PORT__",
+    DAFFY_NAKED_DOMAIN="__DAFFY_NAKED_DOMAIN__",
     DAFFY_BASE_URL="__DAFFY_BASE_URL__",
     DAFFY_TWITTER_CONSUMER_KEY="__DAFFY_TWITTER_CONSUMER_KEY__",
     DAFFY_TWITTER_CONSUMER_SECRET="__DAFFY_TWITTER_CONSUMER_SECRET__",
