@@ -66,7 +66,7 @@ func main() {
 	dbDumpDir := os.Getenv("DAFFY_DB_DUMP_DIR")
 
 	// load up all templates
-	tmpl, err := template.New("").ParseGlob("./templates/*.html")
+	tmpl, err := template.New("").ParseGlob("./templates/mdl/*.html")
 	if err != nil {
 		log.Fatal(err)
 	}
