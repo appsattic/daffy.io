@@ -1,5 +1,7 @@
 package main
 
+// https://gist.github.com/chilts/db1adfaddaae871b161d7eadab6b1278
+
 import "net/http"
 
 func serveFile(filename string) func(http.ResponseWriter, *http.Request) {
