@@ -26,7 +26,7 @@ This is a [gb](https://getgb.io/) project, but probably can be converted to the 
 You have two options depending on whether you're starting a new project or you have an existing one:
 
 1. clone the repo, remove the `.git` directory, and do the renames below
-2. `cp -r` the `etc`, `scripts`, `src`, `static`, `templates`, and `vendor` directories (and the `Makefile` too)
+2. `cp -r` the `etc`, `scripts`, `src`, `static`, `templates`, and `vendor` directories (and the `Makefile` too and .gitignore too)
 
 ## Renaming things ##
 
